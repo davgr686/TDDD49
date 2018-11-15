@@ -107,6 +107,8 @@ namespace p2p
 
                     string receivedMessage = eEncoding.GetString(receivedData);
                     //listMessage.Items.Add("hello");
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+  new Action(delegate () { listMessage.Items.Add("Server started") }));
                     MessageBox.Show(receivedMessage);
 
                 }
