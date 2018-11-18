@@ -7,14 +7,22 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <TextBox x:Name="textLocalIp" HorizontalAlignment="Left" Height="23" Margin="214,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="textFriendsIp" HorizontalAlignment="Left" Height="23" Margin="214,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="textLocalPort" HorizontalAlignment="Left" Height="23" Margin="390,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="textFriendsPort" HorizontalAlignment="Left" Height="23" Margin="390,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <ListBox x:Name="listMessage" HorizontalAlignment="Left" Height="203" Margin="50,146,0,0" VerticalAlignment="Top" Width="476"/>
-        <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="49,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477"/>
-        <Button x:Name="button1" Content="Button" HorizontalAlignment="Left" Margin="588,81,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
-        <Button x:Name="button2" Content="Button" HorizontalAlignment="Left" Margin="588,383,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="77*"/>
+            <ColumnDefinition Width="188*"/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="textLocalIp" HorizontalAlignment="Left" Height="23" Margin="59,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="textFriendsIp" HorizontalAlignment="Left" Height="23" Margin="59,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="textLocalPort" HorizontalAlignment="Left" Height="23" Margin="220,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="textFriendsPort" HorizontalAlignment="Left" Height="23" Margin="220,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="Username" HorizontalAlignment="Left" Height="23" Margin="376.889,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Grid.Column="1"/>
+        <ListBox x:Name="listMessage" HorizontalAlignment="Left" Height="203" Margin="10,146,0,0" VerticalAlignment="Top" Width="476" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="10,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477" Grid.ColumnSpan="2"/>
+        <Button x:Name="Connect_button" Content="Connect" Grid.Column="1" HorizontalAlignment="Left" Margin="161.889,64,0,0" VerticalAlignment="Top" Width="75" Click="Connect_button_Click" Height="33"/>
+        <Button x:Name="Listen_button" Content="Listen" Grid.Column="1" HorizontalAlignment="Left" Margin="253.889,64,0,0" VerticalAlignment="Top" Width="75" Height="33" Click="Listen_button_Click"/>
+        <Button x:Name="Send_button" Content="Send" Grid.Column="1" HorizontalAlignment="Left" Margin="397.889,382,0,0" VerticalAlignment="Top" Width="75" Click="Send_button_Click"/>
+        <Label Content="Me" HorizontalAlignment="Left" Margin="29,41,0,0" VerticalAlignment="Top" Height="23" Width="27"/>
+        <Label Content="Friend" HorizontalAlignment="Left" Margin="14,97,0,0" VerticalAlignment="Top" Height="23" Width="44"/>
 
     </Grid>
 </Window>

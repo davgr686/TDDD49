@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+
 
 namespace p2p
 {
@@ -22,51 +24,28 @@ namespace p2p
     /// </summary>
     public partial class MainWindow : Window
     {
-        Socket sck;
-        EndPoint epLocal, epRemote;
+        Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        IPEndPoint ipe = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11001);
+        //ThreadPool.QueueUserWorkItem();
+
         public MainWindow()
         {
             InitializeComponent();
-
-            sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-
-            textLocalIp.Text = GetLocalIP();
-            textFriendsIp.Text = GetLocalIP();
-
-        }
-        private string GetLocalIP()
-        {
-            IPHostEntry host;
-            host = Dns.GetHostEntry(Dns.GetHostName());
-
-            foreach (IPAddress ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            return "127.0.0.1";
         }
 
-        private void button1_Click(object sender, RoutedEventArgs e)
+        private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                epLocal = new IPEndPoint(IPAddress.Parse(textLocalIp.Text), Convert.ToInt32(textLocalPort.Text));
-
-                sck.Bind(epLocal);
-
-                epRemote = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
-                sck.Connect(epRemote);
-
-                byte[] buffer = new byte[1500];
-
-                sck.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref epRemote, new AsyncCallback(MessageCallBack), buffer);
-                //button1.Enabled = false;
-
-                textMessage.Focus();
+                s.Connect(ipe);
+            }
+            catch (ArgumentNullException ae)
+            {
+                MessageBox.Show(ae.ToString());
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show(se.ToString());
             }
             catch (Exception ex)
             {
@@ -74,55 +53,53 @@ namespace p2p
             }
         }
 
-        private void button2_Click(object sender, RoutedEventArgs e)
+        private void Send_button_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
+            int bytesSent = s.Send(msg);
+        }
+
+        private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                byte[] msg = new byte[1500];
-                msg = enc.GetBytes(textMessage.Text);
-                sck.Send(msg);
-                listMessage.Items.Add(textMessage.Text);
-                textMessage.Clear();
+                TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 11001);
+                server.Start();
+
+                Byte[] bytes = new Byte[256];
+                String data = null;
+
+                while (true)
+                {
+                    TcpClient client = server.AcceptTcpClient();
+                    data = null;
+                    NetworkStream stream = client.GetStream();
+
+                    int i;
+
+                    while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                    {
+                        data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                        MessageBox.Show(data);
+                        //listMessage.Items.Add(data);
+
+                        // Process the data sent by the client.
+                        data = data.ToUpper();
+
+                        byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
+
+                        // Send back a response.
+                        stream.Write(msg, 0, msg.Length);
+                        Console.WriteLine("Sent: {0}", data);
+
+                        //client.Close();
+                    }
+                }
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
                 MessageBox.Show(ex.ToString());
             }
-        }
-
-        private void MessageCallBack(IAsyncResult aResult)
-        {
-            try
-            {
-                int size = sck.EndReceiveFrom(aResult, ref epRemote);
-
-                if (size > 0)
-                {
-                    byte[] receivedData = new byte[1464];
-
-                    receivedData = (byte[])aResult.AsyncState;
-
-                    ASCIIEncoding eEncoding = new ASCIIEncoding();
-
-                    string receivedMessage = eEncoding.GetString(receivedData);
-                    //listMessage.Items.Add("hello");
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-  new Action(delegate () { listMessage.Items.Add("Server started") }));
-                    MessageBox.Show(receivedMessage);
-
-                }
-
-                byte[] buffer = new byte[1500];
-                sck.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref epRemote, new AsyncCallback(MessageCallBack), buffer);
-
-            }
-            catch (Exception exp)
-            {
-                MessageBox.Show(exp.ToString());
-            }
-
-
         }
     }
 }
