@@ -33,37 +33,11 @@ namespace p2p
             InitializeComponent();
         }
 
-        private void Connect_button_Click(object sender, RoutedEventArgs e)
+        private void Listen_for_connection(IPAddress ip, int port)
         {
             try
             {
-                s.Connect(ipe);
-            }
-            catch (ArgumentNullException ae)
-            {
-                MessageBox.Show(ae.ToString());
-            }
-            catch (SocketException se)
-            {
-                MessageBox.Show(se.ToString());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-        }
-
-        private void Send_button_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
-            int bytesSent = s.Send(msg);
-        }
-
-        private void Listen_button_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 11001);
+                TcpListener server = new TcpListener(ip, port);
                 server.Start();
 
                 Byte[] bytes = new Byte[256];
@@ -100,6 +74,36 @@ namespace p2p
             {
                 MessageBox.Show(ex.ToString());
             }
+        }
+        private void Connect_button_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                s.Connect(ipe);
+            }
+            catch (ArgumentNullException ae)
+            {
+                MessageBox.Show(ae.ToString());
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show(se.ToString());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Send_button_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
+            int bytesSent = s.Send(msg);
+        }
+
+        private void Listen_button_Click(object sender, RoutedEventArgs e)
+        {
+            Listen_for_connection(IPAddress.Parse("127.0.0.1"), 11001);
         }
     }
 }
