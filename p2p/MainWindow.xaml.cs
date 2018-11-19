@@ -103,9 +103,7 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            IPAddress add = GetIPAddress();
-            //MessageBox.Show(add.ToString());
-            Listen_for_connection(add, 11001);
+            Listen_for_connection(IPAddress.Parse("127.0.0.1"), 11001);
         }
     }
 }
