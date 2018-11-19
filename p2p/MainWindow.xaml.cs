@@ -38,10 +38,10 @@ namespace p2p
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
-            String data = null;
             try
             {
-                s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+                s.Connect(ipe);
+                //s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
             }
             catch (ArgumentNullException ae)
             {
@@ -61,20 +61,9 @@ namespace p2p
         {
             try
             {
-                Socket client = (Socket)ar.AsyncState;
-                client.EndConnect(ar);
-                me_to_friend_socket = client;
-                MessageBox.Show("Connected to: " + client.RemoteEndPoint.ToString());
-                String data = null;
-                while (true)
-                {
-                    byte[] bytes = new byte[256];
-                    int bytesRec = client.Receive(bytes);
-                    data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    MessageBox.Show("From " + client.RemoteEndPoint.ToString() + ": " + data);
-                    //listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Message received!");
-                }
+                Socket connector = (Socket)ar.AsyncState;
+                connector.EndConnect(ar);
+                me_to_friend_socket = connector;
             }
             catch (SocketException se)
             {
@@ -88,19 +77,13 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            Listen_for_connection(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
-        }
-
-        private void Listen_for_connection(IPAddress ip, int port)
-        {
-            IPEndPoint localEndPoint = new IPEndPoint(ip, port);
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
             try
             {
                 listener.Bind(localEndPoint);
                 listener.Listen(100);
-
-                listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+                listener.BeginAccept(new AsyncCallback(ListenCallback), listener);
             }
             catch (SocketException se)
             {
@@ -112,7 +95,7 @@ namespace p2p
             }
         }
 
-        private void AcceptCallback(IAsyncResult ar)
+        private void ListenCallback(IAsyncResult ar)
         {
             try
             {
@@ -128,7 +111,6 @@ namespace p2p
                 {
                     //do no stuff
                 }
-
                 String data = null;
                 while (true)
                 {
@@ -136,9 +118,7 @@ namespace p2p
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                        new Action(delegate () { listMessage.Items.Add(data); }));
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Message received!");
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
                 }
             }
             catch (SocketException se)
