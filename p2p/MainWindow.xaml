@@ -13,8 +13,10 @@
         <TextBox x:Name="textFriendsPort" HorizontalAlignment="Left" Height="23" Margin="390,97,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <ListBox x:Name="listMessage" HorizontalAlignment="Left" Height="203" Margin="50,146,0,0" VerticalAlignment="Top" Width="476"/>
         <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="49,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477"/>
-        <Button x:Name="button1" Content="Button" HorizontalAlignment="Left" Margin="588,81,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
+        <Button x:Name="button1" Content="Listen" HorizontalAlignment="Left" Margin="588,81,0,0" VerticalAlignment="Top" Width="75" Click="button1_Click"/>
         <Button x:Name="button2" Content="Button" HorizontalAlignment="Left" Margin="588,383,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click" IsDefault="True"/>
+        <Button x:Name="button3" Content="Connect" HorizontalAlignment="Left" Margin="694,81,0,0" VerticalAlignment="Top" Width="75" Click="button3_Click"/>
+        <TextBox x:Name="username" HorizontalAlignment="Left" Height="23" Margin="64,42,0,0" TextWrapping="Wrap" Text="Username" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>
