@@ -103,7 +103,7 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            Listen_for_connection(IPAddress.Parse("127.0.0.1"), 11001);
+            Listen_for_connection(IPAddress.Any, 11001);
         }
     }
 }
