@@ -28,7 +28,7 @@ namespace p2p
         {
             InitializeComponent();
 
-            sck = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            sck = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             sck.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             textLocalIp.Text = GetLocalIP();
@@ -59,7 +59,7 @@ namespace p2p
 
                 sck.Bind(epLocal);
                 byte[] buffer = new byte[256];
-                sck.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(MessageCallBack), buffer);
+                //sck.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(MessageCallBack), buffer);
                 //button1.Enabled = false;
 
 
