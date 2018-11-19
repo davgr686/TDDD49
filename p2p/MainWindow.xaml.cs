@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,33 +36,49 @@ namespace p2p
 
         private void Listen_for_connection(IPAddress ip, int port)
         {
+            // Establish the locel endpoint for the socket
+            IPEndPoint localEndPoint = new IPEndPoint(ip, port);
+
+            // Create a TCP/IP socket
+            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             try
             {
-                TcpListener server = new TcpListener(ip, port);
-                server.Start();
+                //listener.Blocking = false;
+                listener.Bind(localEndPoint);
+                listener.Listen(100);
 
-                Byte[] bytes = new Byte[256];
+                Socket handler = listener.Accept();
                 String data = null;
-
-                Socket client = server.AcceptSocket();
-                /*IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
-
-                MessageBox.Show(newclient.Address.ToString());*/
 
                 while (true)
                 {
-                    data = null;
-                    int k = client.Receive(bytes);
-                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, k);
-                    MessageBox.Show(data);
+                    byte[] bytes = new byte[1024];
+                    int bytesRec = handler.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
+                    MessageBox.Show("Text received : {0}", data);
                 }
+
+                byte[] msg = Encoding.ASCII.GetBytes(data);
+                handler.Send(msg);
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
             }
-            catch (SocketException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
         }
+
+        public void AcceptCallback(IAsyncResult ar)
+        {
+            Socket listener = (Socket)ar.AsyncState;
+            Socket handler = listener.EndAccept(ar);
+
+            // Additional code to read data goes here.    
+        }
+
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -80,19 +97,6 @@ namespace p2p
             {
                 MessageBox.Show(ex.ToString());
             }
-        }
-
-        public static IPAddress GetIPAddress()
-        {
-            IPHostEntry hostEntry = Dns.GetHostEntry(Environment.MachineName);
-
-            foreach (IPAddress address in hostEntry.AddressList)
-            {
-                if (address.AddressFamily == AddressFamily.InterNetwork)
-                    return address;
-            }
-
-            return null;
         }
 
         private void Send_button_Click(object sender, RoutedEventArgs e)
