@@ -25,7 +25,7 @@ namespace p2p
     public partial class MainWindow : Window
     {
         Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        IPEndPoint ipe = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11001);
+        IPEndPoint ipe = new IPEndPoint(IPAddress.Parse("192.168.56.1"), 11001);
         //ThreadPool.QueueUserWorkItem();
 
         public MainWindow()
@@ -43,31 +43,18 @@ namespace p2p
                 Byte[] bytes = new Byte[256];
                 String data = null;
 
+                Socket client = server.AcceptSocket();
+                /*IPEndPoint newclient = (IPEndPoint)client.RemoteEndPoint;
+
+                MessageBox.Show(newclient.Address.ToString());*/
+
                 while (true)
                 {
-                    TcpClient client = server.AcceptTcpClient();
                     data = null;
-                    NetworkStream stream = client.GetStream();
+                    int k = client.Receive(bytes);
+                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, k);
+                    MessageBox.Show(data);
 
-                    int i;
-
-                    while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
-                    {
-                        data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-                        MessageBox.Show(data);
-                        //listMessage.Items.Add(data);
-
-                        // Process the data sent by the client.
-                        data = data.ToUpper();
-
-                        byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
-
-                        // Send back a response.
-                        stream.Write(msg, 0, msg.Length);
-                        Console.WriteLine("Sent: {0}", data);
-
-                        //client.Close();
-                    }
                 }
             }
             catch (SocketException ex)
@@ -95,6 +82,19 @@ namespace p2p
             }
         }
 
+        public static IPAddress GetIPAddress()
+        {
+            IPHostEntry hostEntry = Dns.GetHostEntry(Environment.MachineName);
+
+            foreach (IPAddress address in hostEntry.AddressList)
+            {
+                if (address.AddressFamily == AddressFamily.InterNetwork)
+                    return address;
+            }
+
+            return null;
+        }
+
         private void Send_button_Click(object sender, RoutedEventArgs e)
         {
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
@@ -103,7 +103,9 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            Listen_for_connection(IPAddress.Parse("127.0.0.1"), 11001);
+            IPAddress add = GetIPAddress();
+            //MessageBox.Show(add.ToString());
+            Listen_for_connection(add, 11001);
         }
     }
 }
