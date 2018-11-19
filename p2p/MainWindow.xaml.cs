@@ -33,31 +33,41 @@ namespace p2p
         }
 
         private Socket s;
+        private Socket Handler;
 
         private void Listen_for_connection(IPAddress ip, int port)
         {
             //Endpoint for socket
             IPEndPoint localEndPoint = new IPEndPoint(ip, port);
-
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
             try
             {
+                /* Asynchronous */
                 //listener.Blocking = false;
                 listener.Bind(localEndPoint);
                 listener.Listen(100);
 
+                listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+                /* Asynchronous */
+
+                /* Synchronous 
                 //Accept incoming connection
                 Socket handler = listener.Accept();
                 String data = null;
-
                 while (true)
                 {
-                    byte[] bytes = new byte[1024];
+                    byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                        new Action(delegate () { listMessage.Items.Add(data); }));
                 }
+                Synchronous */
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
             {
@@ -65,12 +75,50 @@ namespace p2p
             }
         }
 
-        private void Connect_button_Click(object sender, RoutedEventArgs e)
+        private void AcceptCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket listener = (Socket)ar.AsyncState;
+                Socket handler = listener.EndAccept(ar);
+
+                /* Accept or decline incoming connection request */
+                if (handler.Connected == true)
+                {
+                    MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString());
+                }
+                else
+                {
+                    int x;
+                }
+                Handler = handler;
+                String data = null;
+                while (true)
+                {
+                    byte[] bytes = new byte[256];
+                    int bytesRec = handler.Receive(bytes);
+                    data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                        new Action(delegate () { listMessage.Items.Add(data); }));
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Message received!");
+                    int bytesSent = handler.Send(msg);
+                }
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show("Connection to " + Handler.RemoteEndPoint.ToString() + " broken.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+            private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IPAddress ip = IPAddress.Parse(textFriendsIp.Text);
-            int port = Convert.ToInt32(textFriendsPort.Text);
-            IPEndPoint ipe = new IPEndPoint(ip, port);
+            IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
                 s.Connect(ipe);
@@ -98,7 +146,7 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            Listen_for_connection(IPAddress.Any, 11001);
+            Listen_for_connection(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
         }
     }
 }
