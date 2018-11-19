@@ -25,45 +25,82 @@ namespace p2p
     /// </summary>
     public partial class MainWindow : Window
     {
-        //ThreadPool.QueueUserWorkItem();
-
         public MainWindow()
         {
             InitializeComponent();
         }
 
         private Socket s;
-        private Socket Handler;
+        private Socket friend_to_me_socket;
+        private Socket me_to_friend_socket;
 
-        private void Listen_for_connection(IPAddress ip, int port)
+        private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
-            //Endpoint for socket
-            IPEndPoint localEndPoint = new IPEndPoint(ip, port);
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
+            String data = null;
             try
             {
-                /* Asynchronous */
-                //listener.Blocking = false;
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
+                s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+            }
+            catch (ArgumentNullException ae)
+            {
+                MessageBox.Show(ae.ToString());
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show("No user on the specified IP/Port.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
 
-                listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
-                /* Asynchronous */
-
-                /* Synchronous 
-                //Accept incoming connection
-                Socket handler = listener.Accept();
+        private void ConnectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket client = (Socket)ar.AsyncState;
+                client.EndConnect(ar);
+                me_to_friend_socket = client;
+                MessageBox.Show("Connected to: " + client.RemoteEndPoint.ToString());
                 String data = null;
                 while (true)
                 {
                     byte[] bytes = new byte[256];
-                    int bytesRec = handler.Receive(bytes);
+                    int bytesRec = client.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                        new Action(delegate () { listMessage.Items.Add(data); }));
+                    MessageBox.Show("From " + client.RemoteEndPoint.ToString() + ": " + data);
+                    //listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Message received!");
                 }
-                Synchronous */
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show("Connection to " + me_to_friend_socket.RemoteEndPoint.ToString() + " broken.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Listen_button_Click(object sender, RoutedEventArgs e)
+        {
+            Listen_for_connection(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
+        }
+
+        private void Listen_for_connection(IPAddress ip, int port)
+        {
+            IPEndPoint localEndPoint = new IPEndPoint(ip, port);
+            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                listener.Bind(localEndPoint);
+                listener.Listen(100);
+
+                listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
             }
             catch (SocketException se)
             {
@@ -81,17 +118,17 @@ namespace p2p
             {
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
-
+                friend_to_me_socket = handler;
                 /* Accept or decline incoming connection request */
-                if (handler.Connected == true)
+                if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString());
+                    //do yes stuff
                 }
                 else
                 {
-                    int x;
+                    //do no stuff
                 }
-                Handler = handler;
+
                 String data = null;
                 while (true)
                 {
@@ -102,35 +139,11 @@ namespace p2p
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                         new Action(delegate () { listMessage.Items.Add(data); }));
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes("Message received!");
-                    int bytesSent = handler.Send(msg);
                 }
             }
             catch (SocketException se)
             {
-                MessageBox.Show("Connection to " + Handler.RemoteEndPoint.ToString() + " broken.");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-        }
-
-            private void Connect_button_Click(object sender, RoutedEventArgs e)
-        {
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
-            try
-            {
-                s.Connect(ipe);
-                MessageBox.Show("Connected to: " + s.RemoteEndPoint.ToString());
-            }
-            catch (ArgumentNullException ae)
-            {
-                MessageBox.Show(ae.ToString());
-            }
-            catch (SocketException se)
-            {
-                MessageBox.Show("No user on the specified IP/Port.");
+                MessageBox.Show("Connection to " + friend_to_me_socket.RemoteEndPoint.ToString() + " broken.");
             }
             catch (Exception ex)
             {
@@ -142,11 +155,6 @@ namespace p2p
         {
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
             int bytesSent = s.Send(msg);
-        }
-
-        private void Listen_button_Click(object sender, RoutedEventArgs e)
-        {
-            Listen_for_connection(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
         }
     }
 }
