@@ -62,7 +62,26 @@ namespace p2p
                 connector.EndConnect(ar);
 
                 String data = null;
-                while (true)
+                /* Outgoing connection request accepted or declined */
+                bool connectionAccepted = false;
+                byte[] acceptDecline = new byte[256];
+                int acceptDeclineRec = connector.Receive(acceptDecline);
+                data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
+                if (data == "1")
+                {
+                    connectionAccepted = true;
+                    MessageBox.Show("The client accepted your request.");
+                }
+                else if (data == "2")
+                {
+                    MessageBox.Show("The client declined your request.");
+                    connectionAccepted = false;
+                    s.Shutdown(SocketShutdown.Both);
+                    //s.Close();
+                    s.Disconnect(true);
+                }
+                /* Outgoing connection request accepted or declined */
+                while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = connector.Receive(bytes);
@@ -107,20 +126,26 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
+                bool connectionAccepted = false;
                 /* Accept or decline incoming connection request */
                 if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("");
+                    connectionAccepted = true;
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("1");
                     int bytesSent = s.Send(msg);
                 }
                 else
                 {
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Connection accepted");
+                    connectionAccepted = false;
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("2");
                     int bytesSent = s.Send(msg);
+                    s.Shutdown(SocketShutdown.Both);
+                    //s.Close();
+                    s.Disconnect(true);
                 }
                 /* Accept or decline incoming connection request */
                 String data = null;
-                while (true)
+                while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
