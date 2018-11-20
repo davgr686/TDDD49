@@ -63,7 +63,9 @@ namespace p2p
             {
                 Socket connector = (Socket)ar.AsyncState;
                 connector.EndConnect(ar);
-                me_to_friend_socket = connector;
+                me_to_friend_socket = connector; //ta bort me_to_friend, spara ipn i en sträng istället
+
+                //while(true)... receive data
             }
             catch (SocketException se)
             {
@@ -101,15 +103,16 @@ namespace p2p
             {
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
-                friend_to_me_socket = handler;
+                friend_to_me_socket = handler; //ta bort friend_to_me, spara ipn i en sträng istället
                 /* Accept or decline incoming connection request */
+                //ny socket från den som lyssnar till den som försöker connecta
                 if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    //do yes stuff
+                    //do yes stuff acceptera anslutningen
                 }
                 else
                 {
-                    //do no stuff
+                    //do no stuff avböj anslutningen
                 }
                 String data = null;
                 while (true)
@@ -117,7 +120,7 @@ namespace p2p
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
+                    //MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
                 }
             }
