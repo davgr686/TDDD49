@@ -31,8 +31,6 @@ namespace p2p
         }
 
         private Socket s;
-        private Socket friend_to_me_socket;
-        private Socket me_to_friend_socket;
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
@@ -40,8 +38,7 @@ namespace p2p
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
-                s.Connect(ipe);
-                //s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+                s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
             }
             catch (ArgumentNullException ae)
             {
@@ -63,13 +60,19 @@ namespace p2p
             {
                 Socket connector = (Socket)ar.AsyncState;
                 connector.EndConnect(ar);
-                me_to_friend_socket = connector; //ta bort me_to_friend, spara ipn i en sträng istället
 
-                //while(true)... receive data
+                String data = null;
+                while (true)
+                {
+                    byte[] bytes = new byte[256];
+                    int bytesRec = connector.Receive(bytes);
+                    data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
+                }
             }
             catch (SocketException se)
             {
-                MessageBox.Show("Connection to " + me_to_friend_socket.RemoteEndPoint.ToString() + " broken.");
+                MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
             {
@@ -79,13 +82,13 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
             try
             {
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
-                listener.BeginAccept(new AsyncCallback(ListenCallback), listener);
+                s.Bind(localEndPoint);
+                s.Listen(100);
+                s.BeginAccept(new AsyncCallback(ListenCallback), s);
             }
             catch (SocketException se)
             {
@@ -103,30 +106,31 @@ namespace p2p
             {
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
-                friend_to_me_socket = handler; //ta bort friend_to_me, spara ipn i en sträng istället
+                s = handler;
                 /* Accept or decline incoming connection request */
-                //ny socket från den som lyssnar till den som försöker connecta
                 if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    //do yes stuff acceptera anslutningen
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("");
+                    int bytesSent = s.Send(msg);
                 }
                 else
                 {
-                    //do no stuff avböj anslutningen
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Connection accepted");
+                    int bytesSent = s.Send(msg);
                 }
+                /* Accept or decline incoming connection request */
                 String data = null;
                 while (true)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    //MessageBox.Show("From " + handler.RemoteEndPoint.ToString() + ": " + data);
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
                 }
             }
             catch (SocketException se)
             {
-                MessageBox.Show("Connection to " + friend_to_me_socket.RemoteEndPoint.ToString() + " broken.");
+                MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
             {
@@ -138,6 +142,8 @@ namespace p2p
         {
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
             int bytesSent = s.Send(msg);
+            listMessage.Items.Add(textMessage.Text);
+            textMessage.Clear();
         }
     }
 }
