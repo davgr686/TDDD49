@@ -20,9 +20,6 @@ using System.Threading;
 
 namespace p2p
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -62,13 +59,46 @@ namespace p2p
                 connector.EndConnect(ar);
 
                 String data = null;
-                while (true)
+                String username = null;
+
+                /* Outgoing connection request accepted or declined */
+                bool connectionAccepted = false;
+                byte[] acceptDecline = new byte[256];
+                int acceptDeclineRec = connector.Receive(acceptDecline);
+                data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
+                if (data == "1")
+                {
+                    MessageBox.Show("The client declined your request.");
+                    connectionAccepted = false;
+                    s.Shutdown(SocketShutdown.Both);
+                    //s.Close();
+                    s.Disconnect(true);
+                }
+                else
+                {
+                    /* If the listener accepted your request, collect username of listener */
+                    connectionAccepted = true;
+                    username = data;
+                    MessageBox.Show(username + " accepted your request.");
+                    /* If the listener accepted your request, collect username of listener */
+
+                    /* Send username to listener */
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes((string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)));
+                    int bytesSent = s.Send(msg);
+                    /* Send username to listener */
+
+                }
+                /* Outgoing connection request accepted or declined */
+
+                /* Read messages */
+                while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = connector.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(username + ": " + data); }));
                 }
+                /* Read messages */
             }
             catch (SocketException se)
             {
@@ -107,26 +137,44 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
+
                 /* Accept or decline incoming connection request */
-                if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                bool connectionAccepted = false;
+                if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("");
+                    connectionAccepted = false;
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("1");
                     int bytesSent = s.Send(msg);
+                    s.Shutdown(SocketShutdown.Both);
+                    //s.Close();
+                    s.Disconnect(true);
                 }
                 else
                 {
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes("Connection accepted");
+                    connectionAccepted = true;
+                    /* Send username to client that connected */
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes((string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)));
                     int bytesSent = s.Send(msg);
+                    /* Send username to client that connected */
                 }
                 /* Accept or decline incoming connection request */
+
+                /* Receive username of the connector */
+                byte[] connectorUsername = new byte[256];
+                int connectorUsernameRec = handler.Receive(connectorUsername);
+                String username = Encoding.ASCII.GetString(connectorUsername, 0, connectorUsernameRec);
+                /* Receive username of the connector */
+
+                /* Read messages */
                 String data = null;
-                while (true)
+                while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(data); }));
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(username + ": " + data); }));
                 }
+                /* Read messages */
             }
             catch (SocketException se)
             {
@@ -142,7 +190,7 @@ namespace p2p
         {
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
             int bytesSent = s.Send(msg);
-            listMessage.Items.Add(textMessage.Text);
+            listMessage.Items.Add("Me: " + textMessage.Text);
             textMessage.Clear();
         }
 
