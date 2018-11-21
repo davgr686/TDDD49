@@ -145,5 +145,11 @@ namespace p2p
             listMessage.Items.Add(textMessage.Text);
             textMessage.Clear();
         }
+
+        private void chatHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            history histWindow = new history();
+            histWindow.Show();
+        }
     }
 }
