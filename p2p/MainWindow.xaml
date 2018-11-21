@@ -24,5 +24,6 @@
         <Label Content="IP" HorizontalAlignment="Left" Margin="61,104,0,0" VerticalAlignment="Top" Height="23" Width="20"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,104,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,48,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
+        <Label Content="Username" HorizontalAlignment="Left" Margin="404.889,73,0,0" VerticalAlignment="Top" Height="23" Width="63" Grid.Column="1"/>
     </Grid>
 </Window>
