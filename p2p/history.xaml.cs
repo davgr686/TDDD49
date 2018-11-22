@@ -35,6 +35,8 @@ namespace p2p
                 UserSelect.Items.Add(user);
                 Console.WriteLine(user);
             }
+
+            HistoryDB.AddMessage("YOU: hejsan!", DateTime.Now, "usernametesttesttest");
         }
 
         private void UserSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
