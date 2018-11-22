@@ -2,11 +2,9 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Web.UI;
-using System.Web.Script.Serialization;
 using Newtonsoft.Json;
 
-namespace DataProtocol
+namespace _DataProtocol
 {
     public class DataProtocol
     {
@@ -14,6 +12,13 @@ namespace DataProtocol
         private String _username;
         private DateTime _timestamp = DateTime.Now;
         private String _message;
+
+        public DataProtocol(string type, string username, string message)
+        {
+            _type = type;
+            _username = username;
+            _message = message;
+        }
 
         public String Type
         {
@@ -47,7 +52,7 @@ namespace DataProtocol
             {
                 return _timestamp;
             }
-            set;
+            set { }
         }
 
         public String Message
@@ -63,9 +68,9 @@ namespace DataProtocol
             }
         }
 
-        public DataProtocol CreateDataProtocol()
+        public String CreateJson()
         {
-
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
