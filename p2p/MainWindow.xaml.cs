@@ -33,6 +33,10 @@ namespace p2p
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
+            DataProtocol test = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+            string jsonTest = JsonConvert.SerializeObject(test);
+            MessageBox.Show(jsonTest);
+
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
@@ -67,7 +71,7 @@ namespace p2p
                 byte[] acceptDecline = new byte[256];
                 int acceptDeclineRec = connector.Receive(acceptDecline);
                 String data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
-                DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
+                //DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
                 if (data == "connectionDeclined")
                 {
                     MessageBox.Show("The client declined your request.");
@@ -146,8 +150,10 @@ namespace p2p
                 {
                     connectionAccepted = false;
 
-                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", "Listener", "null");
-                    string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
+                    //DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    //string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
+
+                    string jsonDeclineRequest = "connectionDeclined";
 
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
                     int bytesSent = s.Send(msg);
@@ -160,8 +166,10 @@ namespace p2p
                 {
                     connectionAccepted = true;
 
-                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", "Listener", "null");
-                    string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
+                    //DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    //string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
+
+                    string jsonAcceptRequest = "connectionAccepted";
 
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
