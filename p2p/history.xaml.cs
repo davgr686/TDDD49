@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Data.SQLite;
+using _DataProtocol;
+using Newtonsoft.Json;
 
 
 namespace p2p
@@ -57,6 +59,8 @@ namespace p2p
             searchResultBox.Items.Clear();
             try
             {
+            
+
             List<string> tmp = HistoryDB.UpdateUserList();
             //MessageBox.Show(tmp[0]);
             //MessageBox.Show(searchBox.Text);
