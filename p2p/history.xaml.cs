@@ -33,7 +33,7 @@ namespace p2p
             foreach (var user in tmp)
             {
                 UserSelect.Items.Add(user);
-                Console.WriteLine(user);
+                //Console.WriteLine(user);
             }
 
             HistoryDB.AddMessage("YOU: hejsan!", DateTime.Now, "usernametesttesttest");
@@ -47,11 +47,34 @@ namespace p2p
             foreach (var message in chatHistory)
             {
                 chatHistoryBox.Items.Add(message);
-                Console.WriteLine(message);
+                //Console.WriteLine(message);
             }
 
-            
+        }
 
+        private void searchButton_Click(object sender, RoutedEventArgs e)
+        {
+            searchResultBox.Items.Clear();
+            try
+            {
+            List<string> tmp = HistoryDB.UpdateUserList();
+            //MessageBox.Show(tmp[0]);
+            //MessageBox.Show(searchBox.Text);
+            string search = searchBox.Text;
+
+            var query_where1 = from a in tmp
+                               where a.Contains(search)
+                               select a;
+            foreach (var a in query_where1)
+            {
+                    searchResultBox.Items.Add(a);
+            }
+
+            }
+            catch (Exception ex)
+            {
+                searchResultBox.Items.Add("There are no users matching your query");
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace p2p
     {
         public static SQLiteConnection GetConnection()
         {
-            string connectionString = "Data Source =database.db; Version = 3;";
+            string connectionString = "Data Source = database.db; Version = 3;";
             SQLiteConnection conn;
             conn = new SQLiteConnection(connectionString);
             conn.Open();
@@ -25,14 +25,14 @@ namespace p2p
 
             string sql = "CREATE TABLE IF NOT EXISTS '" + username + "' ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `DateTime` TEXT, `Message` TEXT)";
             SQLiteCommand command = new SQLiteCommand(sql, conn);
-            Console.WriteLine(sql);
+            //Console.WriteLine(sql);
             command.ExecuteNonQuery();
 
             AddToUserList(username);
 
             string insertSql = "INSERT INTO " + username + " (DateTime, Message) VALUES ('" + dt.ToString() + "', '" + message + "')";
             SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
-            Console.WriteLine(insertSql);
+            //Console.WriteLine(insertSql);
             command2.ExecuteNonQuery();
         }
 
@@ -41,7 +41,7 @@ namespace p2p
             SQLiteConnection conn = GetConnection();
             string insertSql = "INSERT OR REPLACE INTO Users (Username) values('" + username + "')";
             SQLiteCommand command = new SQLiteCommand(insertSql, conn);
-            Console.WriteLine(insertSql);
+            //Console.WriteLine(insertSql);
             command.ExecuteNonQuery();
         }
 

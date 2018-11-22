@@ -200,6 +200,7 @@ namespace p2p
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
             int bytesSent = s.Send(msg);
             listMessage.Items.Add("Me: " + textMessage.Text);
+
             textMessage.Clear();
         }
 

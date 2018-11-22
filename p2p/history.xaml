@@ -9,6 +9,9 @@
     <Grid>
         <ComboBox x:Name="UserSelect" HorizontalAlignment="Left" Margin="48,30,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="UserSelect_SelectionChanged"/>
         <ListBox x:Name="chatHistoryBox" HorizontalAlignment="Left" Height="277" Margin="48,106,0,0" VerticalAlignment="Top" Width="701"/>
+        <TextBox x:Name="searchBox" HorizontalAlignment="Left" Height="23" Margin="385,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" AutomationProperties.HelpText="Enter a Username"/>
+        <Button x:Name="searchButton" Content="Search for User" HorizontalAlignment="Left" Margin="385,57,0,0" VerticalAlignment="Top" Width="120" Click="searchButton_Click"/>
+        <ListBox x:Name="searchResultBox" HorizontalAlignment="Left" Height="79" Margin="531,10,0,0" VerticalAlignment="Top" Width="218"/>
 
     </Grid>
 </Window>
