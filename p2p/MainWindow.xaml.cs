@@ -71,8 +71,8 @@ namespace p2p
                     MessageBox.Show("The client declined your request.");
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
-                    //s.Close();
                     s.Disconnect(true);
+                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
@@ -88,13 +88,17 @@ namespace p2p
                     int bytesRec = connector.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    DateTime timestamp = DateTime.Now;
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, 
-                                                        new Action(delegate () { listMessage.Items.Add(responseMessage.Username + ": " + responseMessage.Message); }));
+                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
             catch (SocketException se)
             {
+                s.Shutdown(SocketShutdown.Both);
+                s.Disconnect(true);
+                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
@@ -115,6 +119,9 @@ namespace p2p
             }
             catch (SocketException se)
             {
+                s.Shutdown(SocketShutdown.Both);
+                s.Disconnect(true);
+                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
@@ -130,7 +137,6 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
-                String data = null;
 
                 /* Accept or decline incoming connection request */
                 bool connectionAccepted = false;
@@ -143,8 +149,8 @@ namespace p2p
                     int bytesSent = s.Send(msg);
 
                     s.Shutdown(SocketShutdown.Both);
-                    //s.Close();
                     s.Disconnect(true);
+                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
@@ -157,19 +163,24 @@ namespace p2p
                 /* Accept or decline incoming connection request */
 
                 /* Read messages */
+                String data = null;
                 while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    DateTime timestamp = DateTime.Now;
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                        new Action(delegate () { listMessage.Items.Add(responseMessage.Username + ": " + responseMessage.Message); }));
+                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
             catch (SocketException se)
             {
+                s.Shutdown(SocketShutdown.Both);
+                s.Disconnect(true);
+                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
@@ -184,7 +195,8 @@ namespace p2p
             string jsonMessage = JsonConvert.SerializeObject(message);
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
             int bytesSent = s.Send(msg);
-            listMessage.Items.Add("Me: " + textMessage.Text);
+            DateTime timestamp = DateTime.Now;
+            listMessage.Items.Add(timestamp + " Me: " + textMessage.Text);
             textMessage.Clear();
         }
     }
