@@ -33,10 +33,6 @@ namespace p2p
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
-            DataProtocol test = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
-            string jsonTest = JsonConvert.SerializeObject(test);
-            MessageBox.Show(jsonTest);
-
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
@@ -64,15 +60,13 @@ namespace p2p
                 Socket connector = (Socket)ar.AsyncState;
                 connector.EndConnect(ar);
 
-                String username = null;
-
                 /* Outgoing connection request accepted or declined */
                 bool connectionAccepted = false;
                 byte[] acceptDecline = new byte[256];
                 int acceptDeclineRec = connector.Receive(acceptDecline);
                 String data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
-                //DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
-                if (data == "connectionDeclined")
+                DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
+                if (response.Type == "connectionDeclined")
                 {
                     MessageBox.Show("The client declined your request.");
                     connectionAccepted = false;
@@ -82,17 +76,8 @@ namespace p2p
                 }
                 else
                 {
-                    /* If the listener accepted your request, collect username of listener */
                     connectionAccepted = true;
-                    username = data;
-                    MessageBox.Show(username + " accepted your request.");
-                    /* If the listener accepted your request, collect username of listener */
-
-                    /* Send username to listener */
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes((string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)));
-                    int bytesSent = s.Send(msg);
-                    /* Send username to listener */
-
+                    MessageBox.Show(response.Username + " accepted your request.");
                 }
                 /* Outgoing connection request accepted or declined */
 
@@ -102,7 +87,9 @@ namespace p2p
                     byte[] bytes = new byte[256];
                     int bytesRec = connector.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(username + ": " + data); }));
+                    DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, 
+                                                        new Action(delegate () { listMessage.Items.Add(responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
@@ -143,18 +130,15 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
+                String data = null;
 
                 /* Accept or decline incoming connection request */
                 bool connectionAccepted = false;
                 if (MessageBox.Show("Connection request from: " + handler.RemoteEndPoint.ToString() + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     connectionAccepted = false;
-
-                    //DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
-                    //string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
-
-                    string jsonDeclineRequest = "connectionDeclined";
-
+                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
                     int bytesSent = s.Send(msg);
 
@@ -165,31 +149,22 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
-
-                    //DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
-                    //string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
-
-                    string jsonAcceptRequest = "connectionAccepted";
-
+                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
                 }
                 /* Accept or decline incoming connection request */
 
-                /* Receive username of the connector */
-                byte[] connectorUsername = new byte[256];
-                int connectorUsernameRec = handler.Receive(connectorUsername);
-                String username = Encoding.ASCII.GetString(connectorUsername, 0, connectorUsernameRec);
-                /* Receive username of the connector */
-
                 /* Read messages */
-                String data = null;
                 while (connectionAccepted)
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate () { listMessage.Items.Add(username + ": " + data); }));
+                    DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                        new Action(delegate () { listMessage.Items.Add(responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
@@ -205,7 +180,9 @@ namespace p2p
 
         private void Send_button_Click(object sender, RoutedEventArgs e)
         {
-            byte[] msg = System.Text.Encoding.ASCII.GetBytes(textMessage.Text);
+            DataProtocol message = new DataProtocol("Message", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), textMessage.Text);
+            string jsonMessage = JsonConvert.SerializeObject(message);
+            byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
             int bytesSent = s.Send(msg);
             listMessage.Items.Add("Me: " + textMessage.Text);
             textMessage.Clear();
