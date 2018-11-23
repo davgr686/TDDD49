@@ -7,11 +7,10 @@
         mc:Ignorable="d"
         Title="history" Height="450" Width="800">
     <Grid>
-        <ComboBox x:Name="UserSelect" HorizontalAlignment="Left" Margin="48,30,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="UserSelect_SelectionChanged"/>
-        <ListBox x:Name="chatHistoryBox" HorizontalAlignment="Left" Height="277" Margin="48,106,0,0" VerticalAlignment="Top" Width="701"/>
-        <TextBox x:Name="searchBox" HorizontalAlignment="Left" Height="23" Margin="385,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" AutomationProperties.HelpText="Enter a Username"/>
-        <Button x:Name="searchButton" Content="Search for User" HorizontalAlignment="Left" Margin="385,57,0,0" VerticalAlignment="Top" Width="120" Click="searchButton_Click"/>
-        <ListBox x:Name="searchResultBox" HorizontalAlignment="Left" Height="79" Margin="531,10,0,0" VerticalAlignment="Top" Width="218"/>
+        <ListBox x:Name="chatHistoryBox" HorizontalAlignment="Left" Height="215" Margin="48,168,0,0" VerticalAlignment="Top" Width="701"/>
+        <TextBox x:Name="searchBox" HorizontalAlignment="Left" Height="23" Margin="387,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" AutomationProperties.HelpText="Enter a Username"/>
+        <Button x:Name="searchButton" Content="Search for User" HorizontalAlignment="Left" Margin="387,99,0,0" VerticalAlignment="Top" Width="120" Click="searchButton_Click" IsDefault="True"/>
+        <ListBox x:Name="searchResultBox" HorizontalAlignment="Left" Height="131" Margin="531,17,0,0" VerticalAlignment="Top" Width="218" SelectionChanged="searchResultBox_SelectionChanged"/>
 
     </Grid>
 </Window>

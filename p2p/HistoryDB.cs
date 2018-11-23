@@ -70,11 +70,12 @@ namespace p2p
             string sql = "select * from " + selectedUser;
             SQLiteCommand command = new SQLiteCommand(sql, conn);
             SQLiteDataReader reader = command.ExecuteReader();
+            
             while (reader.Read())
             {
-                //Console.WriteLine("Username: " + reader["Message"]);
-                string output = reader["DateTime"] + ": " + reader["Message"];
-                messageHistory.Add(output);
+                messageHistory.Add("New conversation started " + reader["DateTime"] + "\n" + reader["Message"].ToString());
+                //string output = reader["Message"].ToString();
+                //messageHistory.Add(output);
             }
 
             return messageHistory;

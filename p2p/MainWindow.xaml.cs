@@ -33,9 +33,6 @@ namespace p2p
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
-            DataProtocol test = new DataProtocol("connectiondecli", "sjsj", "null");
-            string jsonTest = JsonConvert.SerializeObject(test);
-            MessageBox.Show(jsonTest);
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
@@ -209,9 +206,6 @@ namespace p2p
 
         private void chatHistoryButton_Click(object sender, RoutedEventArgs e)
         {
-            DataProtocol test = new DataProtocol("connectiondecli", "sjsj", "null");
-            string jsonTest = JsonConvert.SerializeObject(test);
-            MessageBox.Show(jsonTest);
             history histWindow = new history();
             histWindow.Show();
         }

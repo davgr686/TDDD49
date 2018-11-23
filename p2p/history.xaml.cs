@@ -26,33 +26,9 @@ namespace p2p
         public history()
         {
             InitializeComponent();
-            UpdateUserList();
+           
         }
 
-        public void UpdateUserList()
-        {
-            List<string> tmp = HistoryDB.UpdateUserList();
-            foreach (var user in tmp)
-            {
-                UserSelect.Items.Add(user);
-                //Console.WriteLine(user);
-            }
-
-            HistoryDB.AddMessage("YOU: hejsan!", DateTime.Now, "usernametesttesttest");
-        }
-
-        private void UserSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            chatHistoryBox.Items.Clear();
-            string selectedUser = UserSelect.SelectedItem.ToString();
-            List<string> chatHistory = HistoryDB.GetHistory(selectedUser);
-            foreach (var message in chatHistory)
-            {
-                chatHistoryBox.Items.Add(message);
-                //Console.WriteLine(message);
-            }
-
-        }
 
         private void searchButton_Click(object sender, RoutedEventArgs e)
         {
@@ -78,6 +54,25 @@ namespace p2p
             catch (Exception ex)
             {
                 searchResultBox.Items.Add("There are no users matching your query");
+            }
+        }
+
+        private void searchResultBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            { 
+                chatHistoryBox.Items.Clear();
+                string selectedUser = searchResultBox.SelectedItem.ToString();
+                List<string> chatHistory = HistoryDB.GetHistory(selectedUser);
+                foreach (var message in chatHistory)
+                {
+                    chatHistoryBox.Items.Add(message);
+                    //Console.WriteLine(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                chatHistoryBox.Items.Add("There is no chat history to show");
             }
         }
     }
