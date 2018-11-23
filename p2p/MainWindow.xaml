@@ -25,5 +25,6 @@
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,104,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,48,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Button x:Name="chatHistoryButton" Content="Chat History" Grid.Column="1" HorizontalAlignment="Left" Margin="376.6,191,0,0" VerticalAlignment="Top" Width="75" Click="chatHistoryButton_Click"/>
+        <Button x:Name="disconnectButton" Content="Disconnect" Grid.Column="1" HorizontalAlignment="Left" Margin="187.6,76,0,0" VerticalAlignment="Top" Width="75" Height="33" IsEnabled="False" Click="disconnectButton_Click"/>
     </Grid>
 </Window>

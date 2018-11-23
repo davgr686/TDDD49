@@ -30,6 +30,8 @@ namespace p2p
         }
 
         private Socket s;
+        private string connectedUsername;
+        private DateTime convoDT;
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
@@ -38,6 +40,9 @@ namespace p2p
             try
             {
                 s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+                Username.IsEnabled = false;
+                Connect_button.IsEnabled = false;
+
             }
             catch (ArgumentNullException ae)
             {
@@ -59,6 +64,11 @@ namespace p2p
             {
                 Socket connector = (Socket)ar.AsyncState;
                 connector.EndConnect(ar);
+                string userName = (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text));
+                
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(userName);
+                int bytesSent = s.Send(msg);
+
 
                 /* Outgoing connection request accepted or declined */
                 bool connectionAccepted = false;
@@ -77,7 +87,13 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
+                    connectedUsername = response.Username;
+                    convoDT = DateTime.Now;
+                    Username.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { Username.IsEnabled = false; }));
                     MessageBox.Show(response.Username + " accepted your request.");
+                    disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { disconnectButton.IsEnabled = true; }));
                 }
                 /* Outgoing connection request accepted or declined */
 
@@ -111,6 +127,7 @@ namespace p2p
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
+            Listen_button.IsEnabled = false;
             try
             {
                 s.Bind(localEndPoint);
@@ -123,6 +140,7 @@ namespace p2p
                 s.Disconnect(true);
                 s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
+                Listen_button.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -137,6 +155,13 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
+                byte[] bytes = new byte[256];
+                int bytesRec = handler.Receive(bytes);
+                string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                connectedUsername = currUser;
+                convoDT = DateTime.Now;
+                MessageBox.Show(currUser);
+
 
                 /* Accept or decline incoming connection request */
                 bool connectionAccepted = false;
@@ -155,6 +180,10 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
+                    disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { disconnectButton.IsEnabled = true; }));
+                    Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { Connect_button.IsEnabled = false; }));
                     DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
@@ -166,9 +195,9 @@ namespace p2p
                 String data = null;
                 while (connectionAccepted)
                 {
-                    byte[] bytes = new byte[256];
-                    int bytesRec = handler.Receive(bytes);
-                    data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    byte[] rbytes = new byte[256];
+                    int rbytesRec = handler.Receive(rbytes);
+                    data = Encoding.ASCII.GetString(rbytes, 0, rbytesRec);
                     DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
                     DateTime timestamp = DateTime.Now;
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -198,6 +227,33 @@ namespace p2p
             DateTime timestamp = DateTime.Now;
             listMessage.Items.Add(timestamp + " Me: " + textMessage.Text);
             textMessage.Clear();
+        }
+
+        private void chatHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            history histWindow = new history();
+            histWindow.Show();
+        }
+
+        private void disconnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to disconnect?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
+            {
+                return;
+            }
+            else
+            {
+                //List<string> conversation = new List<string>();
+                string conversation = "";
+                foreach (string s in listMessage.Items)
+                {
+                    conversation += s + "\n";
+                }
+                HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
+                s.Shutdown(SocketShutdown.Both);
+                s.Disconnect(true);
+            }
+                
         }
     }
 }

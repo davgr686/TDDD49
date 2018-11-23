@@ -18,7 +18,7 @@ namespace p2p
             return conn;
         }
 
-        public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
+        public static void AddConvo(string message, DateTime dt, string username) //ska ändras till klassen message senare
         {
             SQLiteConnection conn = GetConnection();
             // if table for username not exist -> create table, else insert into existing.
