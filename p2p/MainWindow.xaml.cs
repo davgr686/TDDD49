@@ -72,7 +72,6 @@ namespace p2p
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
                     s.Disconnect(true);
-                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
@@ -98,7 +97,6 @@ namespace p2p
             {
                 s.Shutdown(SocketShutdown.Both);
                 s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
