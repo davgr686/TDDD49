@@ -158,9 +158,6 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
                 Listen_button.IsEnabled = true;
