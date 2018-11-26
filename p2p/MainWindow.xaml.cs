@@ -139,6 +139,7 @@ namespace p2p
                 s.Shutdown(SocketShutdown.Both);
                 s.Disconnect(true);
                 s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
                 Listen_button.IsEnabled = true;
             }
@@ -212,6 +213,7 @@ namespace p2p
                 s.Shutdown(SocketShutdown.Both);
                 s.Disconnect(true);
                 s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
@@ -246,7 +248,7 @@ namespace p2p
             else
             {
                 //List<string> conversation = new List<string>();
-                bool connectionAccepted = false;
+                connectionAccepted = false;
                 string conversation = "";
                 foreach (string s in listMessage.Items)
                 {
