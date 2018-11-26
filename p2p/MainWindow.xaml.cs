@@ -37,6 +37,7 @@ namespace p2p
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
@@ -81,8 +82,8 @@ namespace p2p
                     MessageBox.Show("The client declined your request.");
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
-                    s.Disconnect(true);
-                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    s.Close();
+                    //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
@@ -116,8 +117,8 @@ namespace p2p
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
-                            s.Disconnect(true);
-                            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            s.Close();
+                            //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
                             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -134,9 +135,8 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                
+               // s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 MessageBox.Show("Connection broken.");
             }
             catch (Exception ex)
@@ -148,12 +148,13 @@ namespace p2p
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
             Listen_button.IsEnabled = false;
             try
             {
                 s.Bind(localEndPoint);
-                s.Listen(100);
+                s.Listen(1);
                 s.BeginAccept(new AsyncCallback(ListenCallback), s);
             }
             catch (SocketException se)
@@ -180,7 +181,7 @@ namespace p2p
                 string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
                 convoDT = DateTime.Now;
-                //MessageBox.Show(currUser);
+                MessageBox.Show(currUser);
 
 
                 /* Accept or decline incoming connection request */
@@ -194,8 +195,8 @@ namespace p2p
                     int bytesSent = s.Send(msg);
 
                     s.Shutdown(SocketShutdown.Both);
-                    s.Disconnect(true);
-                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    s.Close();
+                    //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
@@ -234,8 +235,8 @@ namespace p2p
                             int bytesSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
-                            s.Disconnect(true);
-                            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            s.Close();
+                            //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
                             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -253,11 +254,11 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                
+                //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
+                MessageBox.Show(se.ToString());
             }
             catch (Exception ex)
             {
@@ -304,8 +305,7 @@ namespace p2p
                     conversation += s + "\n";
                 }
                 //HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
+     
                 Connect_button.IsEnabled = true;
                 disconnectButton.IsEnabled = false;
                 Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
