@@ -102,11 +102,33 @@ namespace p2p
                 {
                     byte[] bytes = new byte[256];
                     int bytesRec = connector.Receive(bytes);
-                    data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                    DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
-                    DateTime timestamp = DateTime.Now;
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, 
-                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                    if (connector.Connected && bytesRec != 0)
+                    {
+                        data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                        DateTime timestamp = DateTime.Now;
+
+                        if (responseMessage.Type == "disconnect")
+                        {
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                            string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
+                            byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
+                            int byteSent = s.Send(disconnectMsg);
+                            connectionAccepted = false;
+                            s.Shutdown(SocketShutdown.Both);
+                            s.Disconnect(true);
+                            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                        new Action(delegate () { Listen_button.IsEnabled = true; }));
+                            Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                new Action(delegate () { Connect_button.IsEnabled = true; }));
+                        }
+
+                        listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                            new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                    }
+                    else
+                        break;
                 }
                 /* Read messages */
             }
@@ -200,11 +222,35 @@ namespace p2p
                 {
                     byte[] rbytes = new byte[256];
                     int rbytesRec = handler.Receive(rbytes);
-                    data = Encoding.ASCII.GetString(rbytes, 0, rbytesRec);
-                    DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
-                    DateTime timestamp = DateTime.Now;
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                    if (handler.Connected && rbytesRec != 0)
+                    {
+                        data = Encoding.ASCII.GetString(rbytes, 0, rbytesRec);
+                        DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                        DateTime timestamp = DateTime.Now;
+                        MessageBox.Show(responseMessage.ToString());
+                        MessageBox.Show(responseMessage.Type);
+                        if (responseMessage.Type == "disconnect")
+                        {
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                            string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
+                            byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
+                            int bytesSent = s.Send(disconnectMsg);
+                            connectionAccepted = false;
+                            s.Shutdown(SocketShutdown.Both);
+                            s.Disconnect(true);
+                            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                            Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                        new Action(delegate () { Listen_button.IsEnabled = true; }));
+                            Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { Connect_button.IsEnabled = true; }));
+
+                        }
+
+                        listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                            new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                    }
+                    else
+                        break;
                 }
                 /* Read messages */
             }
@@ -248,17 +294,25 @@ namespace p2p
             else
             {
                 //List<string> conversation = new List<string>();
+
+                DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
+                byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
+                int bytesSent = s.Send(disconnectMsg);
+
                 connectionAccepted = false;
                 string conversation = "";
                 foreach (string s in listMessage.Items)
                 {
                     conversation += s + "\n";
                 }
-                HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
+                //HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
                 s.Shutdown(SocketShutdown.Both);
                 s.Disconnect(true);
                 Connect_button.IsEnabled = true;
                 disconnectButton.IsEnabled = false;
+                Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                        new Action(delegate () { Listen_button.IsEnabled = true; }));
             }
                 
         }
