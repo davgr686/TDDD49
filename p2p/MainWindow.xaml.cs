@@ -34,6 +34,7 @@ namespace p2p
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
@@ -45,7 +46,7 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                MessageBox.Show("No user on the specified IP/Port.");
+                MessageBox.Show("No user on the specified IP/Port (Connect button click).");
             }
             catch (Exception ex)
             {
@@ -71,7 +72,7 @@ namespace p2p
                     MessageBox.Show("The client declined your request.");
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
-                    s.Disconnect(true);
+                    s.Close();
                 }
                 else
                 {
@@ -87,17 +88,25 @@ namespace p2p
                     int bytesRec = connector.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    if (bytesRec == 0)
+                        break;
+                    if (responseMessage.Type == "Disconnect")
+                    {
+                        s.Shutdown(SocketShutdown.Both);
+                        s.Close();
+                        MessageBox.Show("Your friend disconnected.");
+                        break;
+                    }
                     DateTime timestamp = DateTime.Now;
-                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, 
-                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                    listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                       new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
             catch (SocketException se)
             {
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                MessageBox.Show("Connection broken.");
+                MessageBox.Show(se.ToString());
+                MessageBox.Show("Connection broken (Connect callback).");
             }
             catch (Exception ex)
             {
@@ -108,6 +117,7 @@ namespace p2p
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(textLocalPort.Text));
             try
             {
@@ -117,10 +127,7 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                MessageBox.Show("Connection broken.");
+                MessageBox.Show("Connection broken (Listen button click).");
             }
             catch (Exception ex)
             {
@@ -147,8 +154,7 @@ namespace p2p
                     int bytesSent = s.Send(msg);
 
                     s.Shutdown(SocketShutdown.Both);
-                    s.Disconnect(true);
-                    s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    s.Close();
                 }
                 else
                 {
@@ -168,18 +174,26 @@ namespace p2p
                     int bytesRec = handler.Receive(bytes);
                     data = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                     DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
+                    if (bytesRec == 0)
+                        break;
+                    if (responseMessage.Type == "Disconnect")
+                    {
+                        s.Shutdown(SocketShutdown.Both);
+                        s.Close();
+                        MessageBox.Show("Your friend disconnected.");
+                        break;
+                    }
                     DateTime timestamp = DateTime.Now;
                     listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                        new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                                                       new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
                 }
                 /* Read messages */
             }
             catch (SocketException se)
             {
                 s.Shutdown(SocketShutdown.Both);
-                s.Disconnect(true);
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                MessageBox.Show("Connection broken.");
+                s.Close();
+                MessageBox.Show("Connection broken (Listen callback).");
             }
             catch (Exception ex)
             {
@@ -196,6 +210,19 @@ namespace p2p
             DateTime timestamp = DateTime.Now;
             listMessage.Items.Add(timestamp + " Me: " + textMessage.Text);
             textMessage.Clear();
+        }
+
+        private void Disconnect_button_Click(object sender, RoutedEventArgs e)
+        {
+            Disconnect();
+        }
+
+        private void Disconnect()
+        {
+            DataProtocol message = new DataProtocol("Disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+            string jsonMessage = JsonConvert.SerializeObject(message);
+            byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
+            int bytesSent = s.Send(msg);
         }
     }
 }
