@@ -18,6 +18,10 @@ using System.Net.Sockets;
 using System.Threading;
 using _DataProtocol;
 using Newtonsoft.Json;
+using Microsoft.Win32;
+using System.IO;
+using System.Drawing;
+using System.Windows.Controls;
 
 
 namespace p2p
@@ -111,13 +115,14 @@ namespace p2p
 
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
+                            WriteConvoToDB();
                             //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
@@ -181,7 +186,7 @@ namespace p2p
                 string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
                 convoDT = DateTime.Now;
-                MessageBox.Show(currUser);
+                //MessageBox.Show(currUser);
 
 
                 /* Accept or decline incoming connection request */
@@ -225,17 +230,18 @@ namespace p2p
                         data = Encoding.ASCII.GetString(rbytes, 0, rbytesRec);
                         DataProtocol responseMessage = JsonConvert.DeserializeObject<DataProtocol>(data);
                         DateTime timestamp = DateTime.Now;
-                        MessageBox.Show(responseMessage.ToString());
-                        MessageBox.Show(responseMessage.Type);
+                        //MessageBox.Show(responseMessage.ToString());
+                        //MessageBox.Show(responseMessage.Type);
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int bytesSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
+                            WriteConvoToDB();
                             //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
@@ -293,25 +299,56 @@ namespace p2p
             {
                 //List<string> conversation = new List<string>();
 
-                DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
                 string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                 byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                 int bytesSent = s.Send(disconnectMsg);
-
                 connectionAccepted = false;
-                string conversation = "";
-                foreach (string s in listMessage.Items)
-                {
-                    conversation += s + "\n";
-                }
-                //HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
-     
                 Connect_button.IsEnabled = true;
                 disconnectButton.IsEnabled = false;
                 Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
             }
                 
+        }
+
+        private void WriteConvoToDB()
+        {
+           string conversation = "";
+           foreach (string s in listMessage.Items)
+           {
+                conversation += s + "\n";
+           }
+           HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
+            
+        }
+
+        private void SendImage_button_Click(object sender, RoutedEventArgs e)
+        {
+            string path = PathBox.Text;
+            MemoryStream ms = new MemoryStream();
+            Image imageToSend = new Image();
+        }
+
+        private void BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            { 
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.DefaultExt = ".jpg";
+            ofd.Filter = "JPG-file (.jpg)|*.jpg";
+            if (ofd.ShowDialog() == true)
+                {
+                string filename = ofd.FileName;
+                PathBox.Text = filename;
+                }
+                SendImage_button.IsEnabled = true;
+            }
+       
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }
