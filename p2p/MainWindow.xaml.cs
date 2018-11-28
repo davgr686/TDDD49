@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 using Microsoft.Win32;
 using System.IO;
 using System.Drawing;
-using System.Windows.Controls;
+
 
 
 namespace p2p
@@ -77,7 +77,7 @@ namespace p2p
 
 
                 /* Outgoing connection request accepted or declined */
-                byte[] acceptDecline = new byte[256];
+                byte[] acceptDecline = new byte[1500];
                 int acceptDeclineRec = connector.Receive(acceptDecline);
                 String data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
                 DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
@@ -105,7 +105,7 @@ namespace p2p
                 /* Read messages */
                 while (connectionAccepted)
                 {
-                    byte[] bytes = new byte[256];
+                    byte[] bytes = new byte[1500];
                     int bytesRec = connector.Receive(bytes);
                     if (connector.Connected && bytesRec != 0)
                     {
@@ -115,7 +115,7 @@ namespace p2p
 
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int byteSent = s.Send(disconnectMsg);
@@ -130,8 +130,34 @@ namespace p2p
                                 new Action(delegate () { Connect_button.IsEnabled = true; }));
                         }
 
+                        else if (responseMessage.Type == "Image")
+                        {
+                            byte[] img = responseMessage.imgByte;
+
+                            using (var ms = new System.IO.MemoryStream(img))
+                            {
+                                var image = new BitmapImage();
+                                image.BeginInit();
+                                image.CacheOption = BitmapCacheOption.OnLoad; // here
+                                image.StreamSource = ms;
+                                image.EndInit();
+
+                                JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                                string photolocation = "tester.jpg";  //file name 
+                                encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
+                                using (var filestream = new FileStream(photolocation, FileMode.Create))
+                                    encoder.Save(filestream);
+                            }
+                            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                               new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image"); }));
+                        }
+
+                        else
+                        { 
+
                         listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                             new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                        }
                     }
                     else
                         break;
@@ -181,7 +207,7 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
-                byte[] bytes = new byte[256];
+                byte[] bytes = new byte[1500];
                 int bytesRec = handler.Receive(bytes);
                 string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
@@ -194,7 +220,7 @@ namespace p2p
                 if (MessageBox.Show("Connection request from: " + currUser + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     connectionAccepted = false;
-                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null", new byte[1]);
                     string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
                     int bytesSent = s.Send(msg);
@@ -212,7 +238,7 @@ namespace p2p
                     new Action(delegate () { Connect_button.IsEnabled = false; }));
                     Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                     new Action(delegate () { Listen_button.IsEnabled = false; }));
-                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null");
+                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null", new byte[1]);
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
@@ -223,7 +249,7 @@ namespace p2p
                 String data = null;
                 while (connectionAccepted)
                 {
-                    byte[] rbytes = new byte[256];
+                    byte[] rbytes = new byte[1500];
                     int rbytesRec = handler.Receive(rbytes);
                     if (handler.Connected && rbytesRec != 0)
                     {
@@ -234,7 +260,7 @@ namespace p2p
                         //MessageBox.Show(responseMessage.Type);
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
+                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int bytesSent = s.Send(disconnectMsg);
@@ -246,12 +272,36 @@ namespace p2p
                             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                         new Action(delegate () { Listen_button.IsEnabled = true; }));
                             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    new Action(delegate () { Connect_button.IsEnabled = true; }));
+                                        new Action(delegate () { Connect_button.IsEnabled = true; }));
 
                         }
+                        else if (responseMessage.Type == "Image")
+                        {
+                            byte[] img = responseMessage.imgByte;
+
+                             using (var ms = new System.IO.MemoryStream(img))
+                             {
+                                 var image = new BitmapImage();
+                                 image.BeginInit();
+                                 image.CacheOption = BitmapCacheOption.OnLoad; // here
+                                 image.StreamSource = ms;
+                                 image.EndInit();
+
+                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                                 string photolocation = "tester.jpg";  //file name 
+                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
+                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
+                                     encoder.Save(filestream);
+                             }
+                            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                               new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image"); }));
+                        }
+                        else
+                        { 
 
                         listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                             new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                        }
                     }
                     else
                         break;
@@ -274,7 +324,7 @@ namespace p2p
 
         private void Send_button_Click(object sender, RoutedEventArgs e)
         {
-            DataProtocol message = new DataProtocol("Message", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), textMessage.Text);
+            DataProtocol message = new DataProtocol("Message", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), textMessage.Text, new byte[1]);
             string jsonMessage = JsonConvert.SerializeObject(message);
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
             int bytesSent = s.Send(msg);
@@ -299,7 +349,8 @@ namespace p2p
             {
                 //List<string> conversation = new List<string>();
 
-                DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected");
+                
+                DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected", new byte[1]);
                 string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                 byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                 int bytesSent = s.Send(disconnectMsg);
@@ -325,9 +376,44 @@ namespace p2p
 
         private void SendImage_button_Click(object sender, RoutedEventArgs e)
         {
+            try
+            { 
             string path = PathBox.Text;
-            MemoryStream ms = new MemoryStream();
-            Image imageToSend = new Image();
+            //MemoryStream ms = new MemoryStream();
+            byte[] img = System.IO.File.ReadAllBytes(path);
+
+                /* using (var ms = new System.IO.MemoryStream(img))
+                 {
+                     var image = new BitmapImage();
+                     image.BeginInit();
+                     image.CacheOption = BitmapCacheOption.OnLoad; // here
+                     image.StreamSource = ms;
+                     image.EndInit();
+
+                     JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                     string photolocation = "test.jpg";  //file name 
+                     encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
+                     using (var filestream = new FileStream(photolocation, FileMode.Create))
+                         encoder.Save(filestream);
+                 } */
+
+            MessageBox.Show("1");
+            DataProtocol imgMessage = new DataProtocol("Image", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null",img);
+            MessageBox.Show("2");
+            string jsonMessage = JsonConvert.SerializeObject(imgMessage);
+                //MessageBox.Show(jsonMessage);
+                Console.WriteLine(jsonMessage);
+                MessageBox.Show("3");
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
+            int bytesSent = s.Send(msg);
+            DateTime timestamp = DateTime.Now;
+            listMessage.Items.Add(timestamp + " Me: Sent Image");
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
