@@ -188,7 +188,7 @@ namespace p2p
             try
             {
                 s.Bind(localEndPoint);
-                s.Listen(1);
+                s.Listen(10);
                 s.BeginAccept(new AsyncCallback(ListenCallback), s);
             }
             catch (SocketException se)
