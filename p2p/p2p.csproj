@@ -80,10 +80,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ImageSender.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,9 +93,6 @@
       <DependentUpon>history.xaml</DependentUpon>
     </Compile>
     <Compile Include="HistoryDB.cs" />
-    <Compile Include="ImageSender.xaml.cs">
-      <DependentUpon>ImageSender.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
