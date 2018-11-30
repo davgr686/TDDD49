@@ -77,7 +77,7 @@ namespace p2p
 
 
                 /* Outgoing connection request accepted or declined */
-                byte[] acceptDecline = new byte[15000];
+                byte[] acceptDecline = new byte[1024 * 5000];
                 int acceptDeclineRec = connector.Receive(acceptDecline);
                 String data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
                 DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
@@ -105,7 +105,7 @@ namespace p2p
                 /* Read messages */
                 while (connectionAccepted)
                 {
-                    byte[] bytes = new byte[15000];
+                    byte[] bytes = new byte[1024 * 5000];
                     int bytesRec = connector.Receive(bytes);
                     if (connector.Connected && bytesRec != 0)
                     {
@@ -143,13 +143,16 @@ namespace p2p
                                 image.EndInit();
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                                string photolocation = "tester.jpg";  //file name 
+                                string photolocation = "tmper.jpg";  //file name 
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
+                                listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                               new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image");
+                                                                                        
+                                                               }));
                             }
-                            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                               new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image"); }));
+                            
                         }
 
                         else
@@ -207,7 +210,7 @@ namespace p2p
                 Socket listener = (Socket)ar.AsyncState;
                 Socket handler = listener.EndAccept(ar);
                 s = handler;
-                byte[] bytes = new byte[15000];
+                byte[] bytes = new byte[1024 * 5000];
                 int bytesRec = handler.Receive(bytes);
                 string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
@@ -249,7 +252,7 @@ namespace p2p
                 String data = null;
                 while (connectionAccepted)
                 {
-                    byte[] rbytes = new byte[15000];
+                    byte[] rbytes = new byte[1024 * 5000];
                     int rbytesRec = handler.Receive(rbytes);
                     if (handler.Connected && rbytesRec != 0)
                     {
@@ -285,16 +288,24 @@ namespace p2p
                                  image.BeginInit();
                                  image.CacheOption = BitmapCacheOption.OnLoad; // here
                                  image.StreamSource = ms;
+                                 image.DecodePixelHeight = 50;
+                                 image.DecodePixelWidth = 50;
                                  image.EndInit();
 
+                               
+
                                  JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                                 string photolocation = "tester.jpg";  //file name 
+                                 string photolocation = "tmper.jpg";  //file name 
                                  encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                  using (var filestream = new FileStream(photolocation, FileMode.Create))
                                      encoder.Save(filestream);
-                             }
-                            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                               new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image"); }));
+                                listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                              new Action(delegate () {
+                                                                  listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image");
+                                                                  
+                                                              }));
+                            }
+                            
                         }
                         else
                         { 
