@@ -28,6 +28,8 @@ namespace p2p
 {
     public partial class MainWindow : Window
     {
+        public static MainWindow AppWindow;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -60,6 +62,35 @@ namespace p2p
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Connect_button.IsEnabled = true; }));
+        }
+
+        public void DisplayImg(string username, DateTime timestamp)
+        {
+            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                               new Action(delegate () {
+                                                                   listMessage.Items.Add(timestamp + " " + username + ": Sent you an image");
+                                                               }));
+        }
+
+        public void AddMessage(string username, string message, DateTime timestamp)
+        {
+           listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                              new Action(delegate () { listMessage.Items.Add(timestamp + " " + username + ": " + message); }));
+        }
+
+        public void ConnectionBroken()
+        {
+            MessageBox.Show("Connection broken.");
+        }
+
+        public void ConnectionAccepted()
+        {
+            disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { disconnectButton.IsEnabled = true; }));
+            Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { Connect_button.IsEnabled = false; }));
+            Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { Listen_button.IsEnabled = false; }));
         }
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)

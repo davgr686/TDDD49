@@ -1,14 +1,26 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using _DataProtocol;
 using Newtonsoft.Json;
 using Microsoft.Win32;
+using System.IO;
+using System.Drawing;
 
 namespace p2p
 {
@@ -84,22 +96,17 @@ namespace p2p
                 DataProtocol response = JsonConvert.DeserializeObject<DataProtocol>(data);
                 if (response.Type == "connectionDeclined")
                 {
-                    //MessageBox.Show("The client declined your request.");
+                    p2p.MainWindow.AppWindow.ShowMessageBoxCLientDecline();
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
                     s.Close();
-                    //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 }
                 else
                 {
                     connectionAccepted = true;
                     connectedUsername = response.Username;
                     convoDT = DateTime.Now;
-                   // Username.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                   // new Action(delegate () { Username.IsEnabled = false; }));
-                    //MessageBox.Show(response.Username + " accepted your request.");
-                    //disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                   // new Action(delegate () { disconnectButton.IsEnabled = true; }));
+                    p2p.MainWindow.AppWindow.AcceptedRequest(response.Username);
                 }
                 /* Outgoing connection request accepted or declined */
 
@@ -116,26 +123,22 @@ namespace p2p
 
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected", new byte[1]);
+                            DataProtocol disconnect = new DataProtocol("disconnect", myUsername, "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            //WriteConvoToDB();
-                            //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                           // Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                             //           new Action(delegate () { Listen_button.IsEnabled = true; }));
-                            //Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                             //   new Action(delegate () { Connect_button.IsEnabled = true; }));
+                            p2p.MainWindow.AppWindow.DisconnectCallback();
                         }
 
                         else if (responseMessage.Type == "Image")
                         {
                             byte[] img = responseMessage.imgByte;
 
-                            /*
+
+                            
                             using (var ms = new System.IO.MemoryStream(img))
                             {
                                  var image = new BitmapImage();
@@ -149,19 +152,17 @@ namespace p2p
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
-                                listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                               new Action(delegate () {
-                                                                   listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image");
-                                                               }));
+                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp);
+                                
                             }
-                            */
+                            
 
                         }
 
                         else
                         {
-                           // listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                            //                                    new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
+                            p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
+                          
                         }
                     }
                     else
@@ -172,7 +173,7 @@ namespace p2p
             catch (SocketException se)
             {
                 // s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                //MessageBox.Show("Connection broken.");
+                p2p.MainWindow.AppWindow.ConnectionBroken();
             }
             catch (Exception ex)
             {
@@ -200,7 +201,7 @@ namespace p2p
                 if (MessageBox.Show("Connection request from: " + currUser + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     connectionAccepted = false;
-                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null", new byte[1]);
+                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", myUsername, "null", new byte[1]);
                     string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
                     int bytesSent = s.Send(msg);
@@ -212,13 +213,8 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
-                    //disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    //new Action(delegate () { disconnectButton.IsEnabled = true; }));
-                    //Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    //new Action(delegate () { Connect_button.IsEnabled = false; }));
-                    //Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    //new Action(delegate () { Listen_button.IsEnabled = false; }));
-                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "null", new byte[1]);
+                    p2p.MainWindow.AppWindow.ConnectionAccepted();
+                    DataProtocol acceptRequest = new DataProtocol("connectionAccepted", myUsername, "null", new byte[1]);
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
@@ -238,26 +234,21 @@ namespace p2p
                         DateTime timestamp = DateTime.Now;
                         if (responseMessage.Type == "disconnect")
                         {
-                            DataProtocol disconnect = new DataProtocol("disconnect", (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text)), "Disconnected", new byte[1]);
+                            DataProtocol disconnect = new DataProtocol("disconnect", myUsername, "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int bytesSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            //WriteConvoToDB();
-                            //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                            //Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                             //           new Action(delegate () { Listen_button.IsEnabled = true; }));
-                            //Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                             //           new Action(delegate () { Connect_button.IsEnabled = true; }));
+                            p2p.MainWindow.AppWindow.DisconnectCallback();
 
                         }
                         else if (responseMessage.Type == "Image")
                         {
                             byte[] img = responseMessage.imgByte;
 
-                            /* using (var ms = new System.IO.MemoryStream(img))
+                            using (var ms = new System.IO.MemoryStream(img))
                             {
                                 var image = new BitmapImage();
                                 image.BeginInit();
@@ -274,19 +265,15 @@ namespace p2p
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
-                                listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                                                              new Action(delegate () {
-                                                                  listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": Sent you an image");
+                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp);
 
-                                                              }));
                             }
-                            */
+
                         }
                         else
                         {
+                            p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
 
-                           // listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                            //                                    new Action(delegate () { listMessage.Items.Add(timestamp + " " + responseMessage.Username + ": " + responseMessage.Message); }));
                         }
                     }
                     else
@@ -299,7 +286,7 @@ namespace p2p
 
                 //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 connectionAccepted = false;
-               // MessageBox.Show("Connection broken.");
+                p2p.MainWindow.AppWindow.ConnectionBroken();
                // MessageBox.Show(se.ToString());
             }
             catch (Exception ex)
