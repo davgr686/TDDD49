@@ -17,24 +17,17 @@
         <TextBox x:Name="textFriendsPort" HorizontalAlignment="Left" Height="23" Margin="171,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Grid.ColumnSpan="2"/>
         <TextBox x:Name="Username" HorizontalAlignment="Left" Height="23" Margin="376.889,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Grid.Column="1"/>
         <ListBox x:Name="listMessage" HorizontalAlignment="Left" Height="203" Margin="10,146,0,0" VerticalAlignment="Top" Width="476" Grid.ColumnSpan="2"/>
-        <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="10,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="10,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477" Grid.ColumnSpan="2" SpellCheck.IsEnabled="True"/>
         <Button x:Name="Connect_button" Content="Connect" Grid.Column="1" HorizontalAlignment="Left" Margin="74.889,76,0,0" VerticalAlignment="Top" Width="75" Click="Connect_button_Click" Height="33"/>
         <Button x:Name="Listen_button" Content="Listen" HorizontalAlignment="Left" Margin="74.889,20,0,0" VerticalAlignment="Top" Width="75" Height="33" Click="Listen_button_Click" Grid.Column="1"/>
-        <Button x:Name="Send_button" Content="Send" Grid.Column="1" HorizontalAlignment="Left" Margin="397.889,382,0,0" VerticalAlignment="Top" Width="75" Click="Send_button_Click" IsDefault="True"/>
+        <Button x:Name="Send_button" Content="Send" Grid.Column="1" HorizontalAlignment="Left" Margin="421.6,382,0,0" VerticalAlignment="Top" Width="75" Click="Send_button_Click" IsDefault="True"/>
         <Label Content="IP" HorizontalAlignment="Left" Margin="61,104,0,0" VerticalAlignment="Top" Height="23" Width="20"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,104,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,48,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Button x:Name="chatHistoryButton" Content="Chat History" Grid.Column="1" HorizontalAlignment="Left" Margin="453.6,172,0,0" VerticalAlignment="Top" Width="75" Click="chatHistoryButton_Click"/>
         <Button x:Name="disconnectButton" Content="Disconnect" Grid.Column="1" HorizontalAlignment="Left" Margin="187.6,76,0,0" VerticalAlignment="Top" Width="75" Height="33" IsEnabled="False" Click="disconnectButton_Click"/>
-        <Button x:Name="SendImage_button" Content="Send Image" Grid.Column="1" HorizontalAlignment="Left" Margin="397.6,349,0,0" VerticalAlignment="Top" Width="75" Click="SendImage_button_Click" IsEnabled="False"/>
+        <Button x:Name="SendImage_button" Content="Send Image" Grid.Column="1" HorizontalAlignment="Left" Margin="421.6,349,0,0" VerticalAlignment="Top" Width="75" Click="SendImage_button_Click" IsEnabled="False"/>
         <Button x:Name="BrowseButton" Content="Browse" Grid.Column="1" HorizontalAlignment="Left" Margin="310.6,349,0,0" VerticalAlignment="Top" Width="75" Click="BrowseButton_Click"/>
         <TextBox x:Name="PathBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="310.6,305,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="186"/>
-        <ListView x:Name="MessageListVIew" Grid.Column="1" HorizontalAlignment="Left" Height="100" Margin="285.6,172,0,0" VerticalAlignment="Top" Width="100">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn/>
-                </GridView>
-            </ListView.View>
-        </ListView>
     </Grid>
 </Window>
