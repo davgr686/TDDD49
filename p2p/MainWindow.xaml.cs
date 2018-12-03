@@ -37,9 +37,9 @@ namespace p2p
 
         //private Socket s;
         private SocketCl s;
-        private string connectedUsername;
-        private DateTime convoDT;
-        private bool connectionAccepted = false;
+       // private string connectedUsername;
+       // private DateTime convoDT;
+       // private bool connectionAccepted = false;
 
         public void ShowMessageBoxCLientDecline()
         {
@@ -115,6 +115,27 @@ namespace p2p
             catch (SocketException se)
             {
                 MessageBox.Show("No user on the specified IP/Port.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Listen_button_Click(object sender, RoutedEventArgs e)
+        {
+            
+            try
+            {
+                s.InitSocket();
+                s.Listen(textLocalPort.Text);
+                Listen_button.IsEnabled = false;
+            }
+            catch (SocketException se)
+            {
+                connectionAccepted = false;
+                MessageBox.Show("Connection broken.");
+                Listen_button.IsEnabled = true;
             }
             catch (Exception ex)
             {
