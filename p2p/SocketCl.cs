@@ -198,7 +198,7 @@ namespace p2p
 
                 /* Accept or decline incoming connection request */
 
-                if (MessageBox.Show("Connection request from: " + currUser + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
+               /* if (MessageBox.Show("Connection request from: " + currUser + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     connectionAccepted = false;
                     DataProtocol declineRequest = new DataProtocol("connectionDeclined", myUsername, "null", new byte[1]);
@@ -209,16 +209,16 @@ namespace p2p
                     s.Shutdown(SocketShutdown.Both);
                     s.Close();
                     //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                }
-                else
-                {
+                }*/
+                //else
+                //{
                     connectionAccepted = true;
-                    p2p.MainWindow.AppWindow.ConnectionAccepted();
+                    //p2p.MainWindow.AppWindow.ConnectionAccepted();
                     DataProtocol acceptRequest = new DataProtocol("connectionAccepted", myUsername, "null", new byte[1]);
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
-                }
+                //}
                 /* Accept or decline incoming connection request */
 
                 /* Read messages */
@@ -237,7 +237,7 @@ namespace p2p
                             DataProtocol disconnect = new DataProtocol("disconnect", myUsername, "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
-                            int bytesSent = s.Send(disconnectMsg);
+                            int bytesSen = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();

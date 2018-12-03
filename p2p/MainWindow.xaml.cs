@@ -33,13 +33,14 @@ namespace p2p
         public MainWindow()
         {
             InitializeComponent();
+            AppWindow = this;
         }
 
         //private Socket s;
         private SocketCl s;
-       // private string connectedUsername;
-       // private DateTime convoDT;
-       // private bool connectionAccepted = false;
+        private string connectedUsername;
+        private DateTime convoDT;
+        private bool connectionAccepted = false;
 
         public void ShowMessageBoxCLientDecline()
         {
@@ -101,7 +102,7 @@ namespace p2p
             //IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
-                
+                s = new SocketCl();
                 s.InitSocket();
                 s.Connect(textFriendsIp.Text, textFriendsPort.Text);
                 Username.IsEnabled = false;
@@ -127,13 +128,14 @@ namespace p2p
             
             try
             {
+                s = new SocketCl();
                 s.InitSocket();
                 s.Listen(textLocalPort.Text);
                 Listen_button.IsEnabled = false;
             }
             catch (SocketException se)
             {
-                connectionAccepted = false;
+                //connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
                 Listen_button.IsEnabled = true;
             }
