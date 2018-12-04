@@ -30,18 +30,65 @@ namespace p2p
     public partial class MainWindow : Window
     {
         public static MainWindow AppWindow;
+        Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = 11000, ListenerPort = 11000, Username = "DefaultUsername" };
 
         public MainWindow()
         {
             InitializeComponent();
             AppWindow = this;
+            DataContext = session;
         }
 
-        //private Socket s;
-        private SocketCl s;
-        private string connectedUsername;
-        //private DateTime convoDT;
-        private bool connectionAccepted = false;
+        public class Connection
+        {
+            private string UsernameValue;
+
+            public string Username
+            {
+                get { return UsernameValue; }
+                set { UsernameValue = value; }
+            }
+
+            private string ConnectorIPValue;
+
+            public string ConnectorIP
+            {
+                get { return ConnectorIPValue; }
+                set { ConnectorIPValue = value; }
+            }
+
+            private int ConnectorPortValue;
+
+            public int ConnectorPort
+            {
+                get { return ConnectorPortValue; }
+
+                set
+                {
+                    if (value != ConnectorPortValue)
+                    {
+                        ConnectorPortValue = value;
+                    }
+                }
+            }
+            private int ListenerPortValue;
+
+            public int ListenerPort
+            {
+                get { return ListenerPortValue; }
+
+                set
+                {
+                    if (value != ListenerPortValue)
+                    {
+                        ListenerPortValue = value;
+                    }
+                }
+            }
+        }
+
+
+            private SocketCl s;
 
 
         public bool AcceptRequestBox(string connectingUsername)
@@ -172,7 +219,6 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                //connectionAccepted = false;
                 MessageBox.Show("Connection broken.");
                 Listen_button.IsEnabled = true;
             }
@@ -278,6 +324,12 @@ namespace p2p
             {
                 MessageBox.Show(ex.ToString());
             }
+        }
+
+        private void tmpbut_Click(object sender, RoutedEventArgs e)
+        {
+            string message = session.ConnectorIP +  " "  + session.ConnectorPort + " " + session.ListenerPort + " " + session.Username;
+            MessageBox.Show(message);
         }
     }
 }
