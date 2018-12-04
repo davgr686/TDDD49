@@ -40,12 +40,14 @@ namespace p2p
 
         public void Connect(string friendIp, string friendPort)
         {
+            myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(friendIp), Convert.ToInt32(friendPort)); // kanske ska returnera IPEndPoint
             s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
         }
 
         public void Listen(string localPort)
         {
+            myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(localPort)); // kanske ska returnera IPEndPoint
             s.Bind(localEndPoint);
             s.Listen(10);
@@ -84,10 +86,9 @@ namespace p2p
             {
                 Socket connector = (Socket)ar.AsyncState;
                 connector.EndConnect(ar);
-
-                byte[] msg = System.Text.Encoding.ASCII.GetBytes(myUsername); 
+                
+                byte[] msg = System.Text.Encoding.ASCII.GetBytes(myUsername);
                 int bytesSent = s.Send(msg);
-
 
                 /* Outgoing connection request accepted or declined */
                 byte[] acceptDecline = new byte[1024 * 5000];
@@ -109,10 +110,12 @@ namespace p2p
                     p2p.MainWindow.AppWindow.AcceptedRequest(response.Username);
                 }
                 /* Outgoing connection request accepted or declined */
-
+                //connectionAccepted = true;
                 /* Read messages */
+               // connectionAccepted = true;// THIS IS TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 while (connectionAccepted)
                 {
+                    
                     byte[] bytes = new byte[1024 * 5000];
                     int bytesRec = connector.Receive(bytes);
                     if (connector.Connected && bytesRec != 0)
@@ -130,7 +133,7 @@ namespace p2p
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            p2p.MainWindow.AppWindow.DisconnectCallback();
+                            p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
                         }
 
                         else if (responseMessage.Type == "Image")
@@ -156,7 +159,6 @@ namespace p2p
                                 
                             }
                             
-
                         }
 
                         else
@@ -197,28 +199,30 @@ namespace p2p
 
 
                 /* Accept or decline incoming connection request */
+               
+                 if (!p2p.MainWindow.AppWindow.AcceptRequestBox(currUser)) // if accepted connection
+                 {
+                     connectionAccepted = false;
+                     DataProtocol declineRequest = new DataProtocol("connectionDeclined", myUsername, "null", new byte[1]);
+                     string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
+                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
+                     int bytesSent = s.Send(msg);
 
-               /* if (MessageBox.Show("Connection request from: " + currUser + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
+                     s.Shutdown(SocketShutdown.Both);
+                     s.Close();
+                     //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                 }
+                else
                 {
-                    connectionAccepted = false;
-                    DataProtocol declineRequest = new DataProtocol("connectionDeclined", myUsername, "null", new byte[1]);
-                    string jsonDeclineRequest = JsonConvert.SerializeObject(declineRequest);
-                    byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonDeclineRequest);
-                    int bytesSent = s.Send(msg);
-
-                    s.Shutdown(SocketShutdown.Both);
-                    s.Close();
-                    //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                }*/
-                //else
-                //{
                     connectionAccepted = true;
                     //p2p.MainWindow.AppWindow.ConnectionAccepted();
+                    p2p.MainWindow.AppWindow.EnableDisconnectButton();
                     DataProtocol acceptRequest = new DataProtocol("connectionAccepted", myUsername, "null", new byte[1]);
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
-                //}
+
+                }
                 /* Accept or decline incoming connection request */
 
                 /* Read messages */
@@ -241,7 +245,7 @@ namespace p2p
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            p2p.MainWindow.AppWindow.DisconnectCallback();
+                            p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
 
                         }
                         else if (responseMessage.Type == "Image")

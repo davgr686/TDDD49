@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using Microsoft.Win32;
 using System.IO;
 using System.Drawing;
+using System.Windows.Media;
 
 
 
@@ -39,8 +40,35 @@ namespace p2p
         //private Socket s;
         private SocketCl s;
         private string connectedUsername;
-        private DateTime convoDT;
+        //private DateTime convoDT;
         private bool connectionAccepted = false;
+
+
+        public bool AcceptRequestBox(string connectingUsername)
+        {
+            if (MessageBox.Show("Connection request from: " + connectingUsername + ". \nAccept the request?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
+            {
+                return false;
+            }
+            else
+            {
+                Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                    new Action(delegate () { Send_button.IsEnabled = true; }));
+                return true;
+            }
+                
+        }
+
+        public string GetMyUsername()
+        {
+            return (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text));
+        }
+
+        public void EnableDisconnectButton()
+        {
+            disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    new Action(delegate () { disconnectButton.IsEnabled = true; }));
+        }
 
         public void ShowMessageBoxCLientDecline()
         {
@@ -54,15 +82,21 @@ namespace p2p
             MessageBox.Show(username + " accepted your request.");
             disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { disconnectButton.IsEnabled = true; }));
+            Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { Send_button.IsEnabled = true; }));
         }
 
-        public void DisconnectCallback()
+        public void DisconnectCallback(string username, DateTime convoDT)
         {
-            WriteConvoToDB();
+            WriteConvoToDB(username, convoDT);
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Connect_button.IsEnabled = true; }));
+            disconnectButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                           new Action(delegate () { disconnectButton.IsEnabled = false; }));
+            Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { Send_button.IsEnabled = false; }));
         }
 
         public void DisplayImg(string username, DateTime timestamp)
@@ -105,6 +139,7 @@ namespace p2p
                 s = new SocketCl();
                 s.InitSocket();
                 s.Connect(textFriendsIp.Text, textFriendsPort.Text);
+                Username.IsReadOnly = true;
                 Username.IsEnabled = false;
                 Connect_button.IsEnabled = false;
 
@@ -131,6 +166,8 @@ namespace p2p
                 s = new SocketCl();
                 s.InitSocket();
                 s.Listen(textLocalPort.Text);
+                Username.IsReadOnly = true;
+                Username.IsEnabled = false;
                 Listen_button.IsEnabled = false;
             }
             catch (SocketException se)
@@ -177,14 +214,14 @@ namespace p2p
                 
         }
 
-        private void WriteConvoToDB()
+        private void WriteConvoToDB(string username, DateTime convoDT)
         {
            string conversation = "";
            foreach (string s in listMessage.Items)
            {
                 conversation += s + "\n";
            }
-           HistoryDB.AddConvo(conversation, convoDT, connectedUsername);
+           HistoryDB.AddConvo(conversation, convoDT, username);
             
         }
 

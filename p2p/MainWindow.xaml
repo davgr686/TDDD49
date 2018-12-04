@@ -20,7 +20,7 @@
         <TextBox x:Name="textMessage" HorizontalAlignment="Left" Height="23" Margin="10,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="477" Grid.ColumnSpan="2" SpellCheck.IsEnabled="True"/>
         <Button x:Name="Connect_button" Content="Connect" Grid.Column="1" HorizontalAlignment="Left" Margin="74.889,76,0,0" VerticalAlignment="Top" Width="75" Click="Connect_button_Click" Height="33"/>
         <Button x:Name="Listen_button" Content="Listen" HorizontalAlignment="Left" Margin="74.889,20,0,0" VerticalAlignment="Top" Width="75" Height="33" Click="Listen_button_Click" Grid.Column="1"/>
-        <Button x:Name="Send_button" Content="Send" Grid.Column="1" HorizontalAlignment="Left" Margin="421.6,382,0,0" VerticalAlignment="Top" Width="75" Click="Send_button_Click" IsDefault="True"/>
+        <Button x:Name="Send_button" Content="Send" Grid.Column="1" HorizontalAlignment="Left" Margin="421.6,382,0,0" VerticalAlignment="Top" Width="75" Click="Send_button_Click" IsDefault="True" IsEnabled="False"/>
         <Label Content="IP" HorizontalAlignment="Left" Margin="61,104,0,0" VerticalAlignment="Top" Height="23" Width="20"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,104,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
         <Label Content="Port" HorizontalAlignment="Left" Margin="216,48,0,0" VerticalAlignment="Top" Height="23" Width="31" Grid.ColumnSpan="2"/>
