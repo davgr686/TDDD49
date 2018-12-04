@@ -139,8 +139,11 @@ namespace p2p
 
         public void DisplayImg(string username, DateTime timestamp)
         {
+            //image.Width = 200;
+            //image.Height = 200;
             listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                                new Action(delegate () {
+                                                                   //listMessage.Items.Add(image);
                                                                    listMessage.Items.Add(timestamp + " " + username + ": Sent you an image");
                                                                }));
         }
@@ -267,9 +270,11 @@ namespace p2p
         private void SendImage_button_Click(object sender, RoutedEventArgs e)
         {
             try
-            { 
-            string path = PathBox.Text;
-                PathBox.Clear();
+            {
+               
+
+                string path = PathBox.Text;
+                
                 //MemoryStream ms = new MemoryStream();
 
 
@@ -289,8 +294,34 @@ namespace p2p
                  } */
 
             s.SendImage(path);
-            DateTime timestamp = DateTime.Now;
+                PathBox.Clear();
+                DateTime timestamp = DateTime.Now;
             listMessage.Items.Add(timestamp + " Me: Sent Image");
+
+
+             byte[] img = System.IO.File.ReadAllBytes(path);
+                using (var ms = new System.IO.MemoryStream(img))
+                {
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad; // here
+                    image.StreamSource = ms;
+                    image.DecodePixelHeight = 50;
+                    image.DecodePixelWidth = 50;
+                    image.EndInit();
+
+                    Image imger = new Image();
+                    imger.Source = image;
+
+                    JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                    string photolocation = "tmper.jpg";  //file name 
+                    encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
+                    using (var filestream = new FileStream(photolocation, FileMode.Create))
+                        encoder.Save(filestream);
+
+                    listMessage.Items.Add(imger);
+                }
+
 
             }
             catch (Exception ex)

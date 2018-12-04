@@ -149,6 +149,10 @@ namespace p2p
                                 image.CacheOption = BitmapCacheOption.OnLoad; // here
                                 image.StreamSource = ms;
                                 image.EndInit();
+                                
+                               // Image imger = new Image();
+                                //imger.Source = image;
+
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
                                 string photolocation = "tmper.jpg";  //file name 
@@ -261,8 +265,9 @@ namespace p2p
                                 image.DecodePixelHeight = 50;
                                 image.DecodePixelWidth = 50;
                                 image.EndInit();
-
-
+                                p2p.MainWindow.AppWindow.ConnectionBroken();
+                               // Image imger = new Image();
+                                //imger.Source = image;
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
                                 string photolocation = "tmper.jpg";  //file name 
