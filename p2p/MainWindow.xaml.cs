@@ -30,7 +30,7 @@ namespace p2p
     public partial class MainWindow : Window
     {
         public static MainWindow AppWindow;
-        Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = 11000, ListenerPort = 11000, Username = "DefaultUsername" };
+        Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = "11000", ListenerPort = "11000", Username = "DefaultUsername" };
 
         public MainWindow()
         {
@@ -57,33 +57,22 @@ namespace p2p
                 set { ConnectorIPValue = value; }
             }
 
-            private int ConnectorPortValue;
+            private string ConnectorPortValue;
 
-            public int ConnectorPort
+            public string ConnectorPort
             {
                 get { return ConnectorPortValue; }
 
-                set
-                {
-                    if (value != ConnectorPortValue)
-                    {
-                        ConnectorPortValue = value;
-                    }
-                }
+                set { ConnectorPortValue = value; }
             }
-            private int ListenerPortValue;
+            private string ListenerPortValue;
 
-            public int ListenerPort
+            public string ListenerPort
             {
                 get { return ListenerPortValue; }
 
-                set
-                {
-                    if (value != ListenerPortValue)
-                    {
-                        ListenerPortValue = value;
-                    }
-                }
+                set { ListenerPortValue = value; }
+                
             }
         }
 
@@ -108,7 +97,7 @@ namespace p2p
 
         public string GetMyUsername()
         {
-            return (string)Username.Dispatcher.Invoke(new Func<string>(() => Username.Text));
+            return session.Username;
         }
 
         public void EnableDisconnectButton()
@@ -144,6 +133,8 @@ namespace p2p
                                            new Action(delegate () { disconnectButton.IsEnabled = false; }));
             Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { Send_button.IsEnabled = false; }));
+            Username.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { Username.IsEnabled = true; Username.IsReadOnly = false; }));
         }
 
         public void DisplayImg(string username, DateTime timestamp)
@@ -185,9 +176,10 @@ namespace p2p
             {
                 s = new SocketCl();
                 s.InitSocket();
-                s.Connect(textFriendsIp.Text, textFriendsPort.Text);
+                s.Connect(session.ConnectorIP, session.ConnectorPort);
                 Username.IsReadOnly = true;
                 Username.IsEnabled = false;
+                Listen_button.IsEnabled = false;
                 Connect_button.IsEnabled = false;
 
             }
@@ -212,10 +204,11 @@ namespace p2p
             {
                 s = new SocketCl();
                 s.InitSocket();
-                s.Listen(textLocalPort.Text);
+                s.Listen(session.ListenerPort);
                 Username.IsReadOnly = true;
                 Username.IsEnabled = false;
                 Listen_button.IsEnabled = false;
+                Connect_button.IsEnabled = false;
             }
             catch (SocketException se)
             {
@@ -276,6 +269,7 @@ namespace p2p
             try
             { 
             string path = PathBox.Text;
+                PathBox.Clear();
                 //MemoryStream ms = new MemoryStream();
 
 
@@ -326,10 +320,5 @@ namespace p2p
             }
         }
 
-        private void tmpbut_Click(object sender, RoutedEventArgs e)
-        {
-            string message = session.ConnectorIP +  " "  + session.ConnectorPort + " " + session.ListenerPort + " " + session.Username;
-            MessageBox.Show(message);
-        }
     }
 }
