@@ -149,9 +149,7 @@ namespace p2p
                                 image.CacheOption = BitmapCacheOption.OnLoad; // here
                                 image.StreamSource = ms;
                                 image.EndInit();
-                                
-                               // Image imger = new Image();
-                                //imger.Source = image;
+                                image.Freeze();
 
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
@@ -159,7 +157,7 @@ namespace p2p
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
-                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp);
+                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp, image);
                                 
                             }
                             
@@ -183,7 +181,8 @@ namespace p2p
             }
             catch (Exception ex)
             {
-               // MessageBox.Show(ex.ToString());
+                p2p.MainWindow.AppWindow.ShowExcepion(ex);
+                // MessageBox.Show(ex.ToString());
             }
         }
 
@@ -262,19 +261,19 @@ namespace p2p
                                 image.BeginInit();
                                 image.CacheOption = BitmapCacheOption.OnLoad; // here
                                 image.StreamSource = ms;
-                                image.DecodePixelHeight = 50;
-                                image.DecodePixelWidth = 50;
+                                image.DecodePixelHeight = 150;
+                                image.DecodePixelWidth = 150;
                                 image.EndInit();
-                                p2p.MainWindow.AppWindow.ConnectionBroken();
-                               // Image imger = new Image();
-                                //imger.Source = image;
+                                image.Freeze();
+
+
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                                string photolocation = "tmper.jpg";  //file name 
+                                string photolocation = "tmpeeeer.jpg";  //file name 
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
-                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp);
+                                p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp, image);
 
                             }
 
@@ -300,6 +299,7 @@ namespace p2p
             }
             catch (Exception ex)
             {
+                p2p.MainWindow.AppWindow.ShowExcepion(ex);
                 //MessageBox.Show(ex.ToString());
             }
         }
