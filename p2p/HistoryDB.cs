@@ -17,64 +17,97 @@ namespace p2p
     {
         public static SQLiteConnection GetConnection()
         {
+            try
+            { 
             string connectionString = "Data Source = database.db; Version = 3;";
             SQLiteConnection conn;
             conn = new SQLiteConnection(connectionString);
             conn.Open();
             return conn;
+            }
+            catch (SQLiteException se)
+            {
+                //messagebox "no connection"
+                p2p.MainWindow.AppWindow.ShowExcepion(se);
+            }
         }
 
         public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
         {
             SQLiteConnection conn = GetConnection();
             string insertSql = "INSERT INTO " + username + " (Type, DateTime, Message) VALUES ('Text', '" + dt.ToString() + "', '" + message + "')";
-            SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
             //Console.WriteLine(insertSql);
-            command2.ExecuteNonQuery();
+            try
+            {
+                SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
+                command2.ExecuteNonQuery();
+            }
+            catch (SQLiteException se)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(se);
+            }
         }
 
         public static void AddImage(byte[] Image, DateTime dt, string username) //ska ändras till klassen message senare
         {
+            try
+            { 
             SQLiteConnection conn = GetConnection();
-            //string insertSql = "INSERT INTO " + username + " (Type, DateTime, ImageData) VALUES ('Image', '" + dt.ToString() + "', '" + Image + "')";
             SQLiteCommand cmd = new SQLiteCommand(conn);
-            //Console.WriteLine(insertSql);
             cmd.CommandText = "INSERT INTO " + username + " (ImageData, DateTime, Type) VALUES (@img, '" + dt.ToString() + "', 'Image')";
             cmd.Prepare();
-
             cmd.Parameters.Add("@img", DbType.Binary, Image.Length);
             cmd.Parameters["@img"].Value = Image;
             cmd.ExecuteNonQuery();
+            }
+            catch (SQLiteException se)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(se);
+            }
 
-        
+
         }
 
         public static void InitConvo(string username)
         {
-            SQLiteConnection conn = GetConnection();
-            // if table for username not exist -> create table, else insert into existing.
-
             string sql = "CREATE TABLE IF NOT EXISTS '" + username + "' ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,`Type` TEXT,`DateTime` TEXT, `Message` TEXT,`ImageData` BLOB)";
-            SQLiteCommand command = new SQLiteCommand(sql, conn);
-            //Console.WriteLine(sql);
-            command.ExecuteNonQuery();
-
+            SQLiteConnection conn = GetConnection();
+            try
+            {
+                SQLiteCommand command = new SQLiteCommand(sql, conn);
+                command.ExecuteNonQuery();
+            }
+            
             AddToUserList(username);
+
+            catch (SQLiteException se)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(se);
+            }
         }
 
         public static void AddToUserList(string username)
         {
-            SQLiteConnection conn = GetConnection();
             string insertSql = "INSERT OR REPLACE INTO Users (Username) values('" + username + "')";
+            SQLiteConnection conn = GetConnection();
+
+            try
+            { 
             SQLiteCommand command = new SQLiteCommand(insertSql, conn);
-            //Console.WriteLine(insertSql);
             command.ExecuteNonQuery();
+            }
+
+            catch (SQLiteException se)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(se);
+            }
         }
 
         public static List<string> UpdateUserList()
         {
             List<string> userList = new List<string>();
-
+            try
+            { 
             SQLiteConnection conn = GetConnection();
             string sql = "select * from Users";
             SQLiteCommand command = new SQLiteCommand(sql, conn);
@@ -86,14 +119,22 @@ namespace p2p
             }
             
             return userList;
+            }
+            catch (SQLiteException ex)
+            {
+                List<string> userList1 = new List<string>();
+                userList1.Add("Something went wrong");
+                return userList1;
+            }
         }
 
         public static List<Tuple<int, string>> GetHistory(string selectedUser)
         {
             List<Tuple<int, string>> messageHistory = new List<Tuple<int, string>>();
-
-            SQLiteConnection conn = GetConnection();
             string sql = "select * from " + selectedUser;
+            try
+            { 
+            SQLiteConnection conn = GetConnection();
             SQLiteCommand command = new SQLiteCommand(sql, conn);
             SQLiteDataReader reader = command.ExecuteReader();
             
@@ -111,11 +152,17 @@ namespace p2p
                     Tuple<int, string> tpl = new Tuple<int, string>(0, byteToString);
                     messageHistory.Add(tpl);
                 }
-                //string output = reader["Message"].ToString();
-                //messageHistory.Add(output);
-            }
 
+            }
             return messageHistory;
+            }
+            catch (SQLiteException se)
+            {
+                List<Tuple<int, string>> messageHistoryFail = new List<Tuple<int, string>>();
+                Tuple<int, string> tpl = new Tuple<int, string>(1, "Something went wrong");
+                messageHistoryFail.Add(tpl);
+                return messageHistoryFail;
+            }
         }
     }
 }

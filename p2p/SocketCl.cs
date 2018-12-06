@@ -34,24 +34,47 @@ namespace p2p
 
         public void InitSocket()
         {
+            try
+            { 
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            }
+
+            catch (SocketException sex)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(sex);
+            }
         }
 
         public void Connect(string friendIp, string friendPort)
         {
             myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
+            try
+            { 
             IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(friendIp), Convert.ToInt32(friendPort)); // kanske ska returnera IPEndPoint
             s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+            }
+            catch (SocketException sex)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(sex);
+            }
         }
 
         public void Listen(string localPort)
         {
+            
             myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
+            try
+            {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(localPort)); // kanske ska returnera IPEndPoint
             s.Bind(localEndPoint);
             s.Listen(10);
             s.BeginAccept(new AsyncCallback(ListenCallback), s);
+            }
+            catch (SocketException sex)
+            {
+                p2p.MainWindow.AppWindow.ShowExcepion(sex);
+            }
         }
 
         public void SendMessage(string message)
@@ -92,7 +115,6 @@ namespace p2p
                 byte[] msg = System.Text.Encoding.ASCII.GetBytes(myUsername);
                 int bytesSent = s.Send(msg);
 
-                /* Outgoing connection request accepted or declined */
                 byte[] acceptDecline = new byte[1024 * 5000];
                 int acceptDeclineRec = connector.Receive(acceptDecline);
                 String data = Encoding.ASCII.GetString(acceptDecline, 0, acceptDeclineRec);
@@ -113,10 +135,6 @@ namespace p2p
                     HistoryDB.AddMessage("New conversation started", convoDT, response.Username);
                     p2p.MainWindow.AppWindow.AcceptedRequest(response.Username);
                 }
-                /* Outgoing connection request accepted or declined */
-                //connectionAccepted = true;
-                /* Read messages */
-               // connectionAccepted = true;// THIS IS TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 while (connectionAccepted)
                 {
                     
@@ -180,17 +198,14 @@ namespace p2p
                     else
                         break;
                 }
-                /* Read messages */
             }
             catch (SocketException se)
             {
-                // s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 p2p.MainWindow.AppWindow.ConnectionBroken();
             }
             catch (Exception ex)
             {
                 p2p.MainWindow.AppWindow.ShowExcepion(ex);
-                // MessageBox.Show(ex.ToString());
             }
         }
 
@@ -206,7 +221,6 @@ namespace p2p
                 string currUser = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
                 convoDT = DateTime.Now;
-                //MessageBox.Show(currUser);
 
 
                 /* Accept or decline incoming connection request */
@@ -221,7 +235,6 @@ namespace p2p
 
                      s.Shutdown(SocketShutdown.Both);
                      s.Close();
-                     //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                  }
                 else
                 {
@@ -300,20 +313,11 @@ namespace p2p
                     else
                         break;
                 }
-                /* Read messages */
             }
             catch (SocketException se)
             {
-
-                //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 connectionAccepted = false;
                 p2p.MainWindow.AppWindow.ConnectionBroken();
-               // MessageBox.Show(se.ToString());
-            }
-            catch (Exception ex)
-            {
-                p2p.MainWindow.AppWindow.ShowExcepion(ex);
-                //MessageBox.Show(ex.ToString());
             }
         }
 
