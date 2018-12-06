@@ -133,7 +133,7 @@ namespace p2p
                             DataProtocol disconnect = new DataProtocol("disconnect", myUsername, "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
-                            HistoryDB.AddMessage("Disconnected", timestamp, connectedUsername);
+                            HistoryDB.AddMessage(connectedUsername + "Disconnected", timestamp, connectedUsername);
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
@@ -255,6 +255,7 @@ namespace p2p
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
                             int bytesSen = s.Send(disconnectMsg);
+                            HistoryDB.AddMessage(connectedUsername + "Disconnected", timestamp, connectedUsername);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();

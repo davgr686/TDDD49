@@ -94,6 +94,9 @@ namespace p2p
             {
                 Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                     new Action(delegate () { Send_button.IsEnabled = true; }));
+                
+                BrowseButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                                                    new Action(delegate () { BrowseButton.IsEnabled = true; }));
                 return true;
             }
                 
@@ -129,6 +132,8 @@ namespace p2p
             new Action(delegate () { disconnectButton.IsEnabled = true; }));
             Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { Send_button.IsEnabled = true; }));
+            BrowseButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { BrowseButton.IsEnabled = true; }));
         }
 
         public void DisconnectCallback(string username, DateTime convoDT)
@@ -142,6 +147,8 @@ namespace p2p
                                            new Action(delegate () { disconnectButton.IsEnabled = false; }));
             Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { Send_button.IsEnabled = false; }));
+            BrowseButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            new Action(delegate () { BrowseButton.IsEnabled = false; }));
             Username.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { Username.IsEnabled = true; Username.IsReadOnly = false; }));
         }
@@ -285,6 +292,8 @@ namespace p2p
 
         private void SendImage_button_Click(object sender, RoutedEventArgs e)
         {
+            SendImage_button.IsEnabled = false;
+            //BrowseButton.IsEnabled = false;
             try
             {
                 string path = PathBox.Text;
