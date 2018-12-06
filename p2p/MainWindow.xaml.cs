@@ -133,7 +133,7 @@ namespace p2p
 
         public void DisconnectCallback(string username, DateTime convoDT)
         {
-            WriteConvoToDB(username, convoDT);
+            //WriteConvoToDB(username, convoDT);
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -279,7 +279,7 @@ namespace p2p
            {
                 conversation += s + "\n";
            }
-           HistoryDB.AddConvo(conversation, convoDT, username);
+           //HistoryDB.AddMessage(conversation, convoDT, username);
             
         }
 
@@ -296,6 +296,7 @@ namespace p2p
 
 
              byte[] imgi = System.IO.File.ReadAllBytes(path);
+               
              byte[] img = imgi;
                 using (var ms = new System.IO.MemoryStream(imgi))
                 {

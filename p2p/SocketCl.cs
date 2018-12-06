@@ -59,6 +59,7 @@ namespace p2p
             DataProtocol DP = new DataProtocol("Message", myUsername, message, new byte[1]);
             string jsonMessage = JsonConvert.SerializeObject(DP);
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
+            HistoryDB.AddMessage(message, DateTime.Now, connectedUsername);
             int bytesSent = s.Send(msg);
         }
 
@@ -77,6 +78,7 @@ namespace p2p
             DataProtocol imgMessage = new DataProtocol("Image", myUsername, "null", img);
             string jsonMessage = JsonConvert.SerializeObject(imgMessage);
             byte[] msg = System.Text.Encoding.ASCII.GetBytes(jsonMessage);
+            HistoryDB.AddImage(img, DateTime.Now, connectedUsername);
             int bytesSent = s.Send(msg);
         }
 
@@ -105,8 +107,10 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
+                    HistoryDB.InitConvo(response.Username);
                     connectedUsername = response.Username;
                     convoDT = DateTime.Now;
+                    HistoryDB.AddMessage("New conversation started", convoDT, response.Username);
                     p2p.MainWindow.AppWindow.AcceptedRequest(response.Username);
                 }
                 /* Outgoing connection request accepted or declined */
@@ -129,6 +133,7 @@ namespace p2p
                             DataProtocol disconnect = new DataProtocol("disconnect", myUsername, "Disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.ASCII.GetBytes(jsonDisconnect);
+                            HistoryDB.AddMessage("Disconnected", timestamp, connectedUsername);
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
@@ -140,14 +145,16 @@ namespace p2p
                         {
                             byte[] img = responseMessage.imgByte;
 
+                            HistoryDB.AddImage(img, DateTime.Now, connectedUsername);
 
-                            
                             using (var ms = new System.IO.MemoryStream(img))
                             {
                                  var image = new BitmapImage();
                                 image.BeginInit();
                                 image.CacheOption = BitmapCacheOption.OnLoad; // here
                                 image.StreamSource = ms;
+                                image.DecodePixelHeight = 150;
+                                image.DecodePixelWidth = 150;
                                 image.EndInit();
                                 image.Freeze();
 
@@ -165,6 +172,7 @@ namespace p2p
 
                         else
                         {
+                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username);
                             p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
                           
                         }
@@ -203,7 +211,7 @@ namespace p2p
 
                 /* Accept or decline incoming connection request */
                
-                 if (!p2p.MainWindow.AppWindow.AcceptRequestBox(currUser)) // if accepted connection
+                 if (!p2p.MainWindow.AppWindow.AcceptRequestBox(currUser)) // if not accepted connection
                  {
                      connectionAccepted = false;
                      DataProtocol declineRequest = new DataProtocol("connectionDeclined", myUsername, "null", new byte[1]);
@@ -218,6 +226,8 @@ namespace p2p
                 else
                 {
                     connectionAccepted = true;
+                    HistoryDB.InitConvo(currUser);
+                    HistoryDB.AddMessage("New conversation started", convoDT, currUser);
                     //p2p.MainWindow.AppWindow.ConnectionAccepted();
                     p2p.MainWindow.AppWindow.EnableDisconnectButton();
                     DataProtocol acceptRequest = new DataProtocol("connectionAccepted", myUsername, "null", new byte[1]);
@@ -254,6 +264,7 @@ namespace p2p
                         else if (responseMessage.Type == "Image")
                         {
                             byte[] img = responseMessage.imgByte;
+                            HistoryDB.AddImage(img, DateTime.Now, connectedUsername);
 
                             using (var ms = new System.IO.MemoryStream(img))
                             {
@@ -280,6 +291,7 @@ namespace p2p
                         }
                         else
                         {
+                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username);
                             p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
 
                         }

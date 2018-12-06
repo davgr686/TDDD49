@@ -63,10 +63,33 @@ namespace p2p
             { 
                 chatHistoryBox.Items.Clear();
                 string selectedUser = searchResultBox.SelectedItem.ToString();
-                List<string> chatHistory = HistoryDB.GetHistory(selectedUser);
-                foreach (var message in chatHistory)
+                List<Tuple<int, string>> chatHistory = HistoryDB.GetHistory(selectedUser);
+                foreach (Tuple<int, string> tuple in chatHistory)
                 {
-                    chatHistoryBox.Items.Add(message);
+                    if (tuple.Item1 == 1)
+                    { 
+                    chatHistoryBox.Items.Add(tuple.Item2);
+                    }
+                    else
+                    {
+                        byte[] img = System.Text.Encoding.Default.GetBytes(tuple.Item2);
+                        using (var ms = new System.IO.MemoryStream(img))
+                        {
+                            var image = new BitmapImage();
+                            image.BeginInit();
+                            image.CacheOption = BitmapCacheOption.OnLoad; // here
+                            image.StreamSource = ms;
+                            image.DecodePixelHeight = 150;
+                            image.DecodePixelWidth = 150;
+                            image.EndInit();
+
+                            Image imger = new Image();
+                            imger.Source = image;
+                            chatHistoryBox.Items.Add(imger);
+
+
+                        }
+                    }
                     //Console.WriteLine(message);
                 }
             }

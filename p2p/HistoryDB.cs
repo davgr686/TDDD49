@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Drawing;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace p2p
 {
@@ -18,22 +24,42 @@ namespace p2p
             return conn;
         }
 
-        public static void AddConvo(string message, DateTime dt, string username) //ska ändras till klassen message senare
+        public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
+        {
+            SQLiteConnection conn = GetConnection();
+            string insertSql = "INSERT INTO " + username + " (Type, DateTime, Message) VALUES ('Text', '" + dt.ToString() + "', '" + message + "')";
+            SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
+            //Console.WriteLine(insertSql);
+            command2.ExecuteNonQuery();
+        }
+
+        public static void AddImage(byte[] Image, DateTime dt, string username) //ska ändras till klassen message senare
+        {
+            SQLiteConnection conn = GetConnection();
+            //string insertSql = "INSERT INTO " + username + " (Type, DateTime, ImageData) VALUES ('Image', '" + dt.ToString() + "', '" + Image + "')";
+            SQLiteCommand cmd = new SQLiteCommand(conn);
+            //Console.WriteLine(insertSql);
+            cmd.CommandText = "INSERT INTO " + username + " (ImageData, DateTime, Type) VALUES (@img, '" + dt.ToString() + "', 'Image')";
+            cmd.Prepare();
+
+            cmd.Parameters.Add("@img", DbType.Binary, Image.Length);
+            cmd.Parameters["@img"].Value = Image;
+            cmd.ExecuteNonQuery();
+
+        
+        }
+
+        public static void InitConvo(string username)
         {
             SQLiteConnection conn = GetConnection();
             // if table for username not exist -> create table, else insert into existing.
 
-            string sql = "CREATE TABLE IF NOT EXISTS '" + username + "' ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `DateTime` TEXT, `Message` TEXT)";
+            string sql = "CREATE TABLE IF NOT EXISTS '" + username + "' ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,`Type` TEXT,`DateTime` TEXT, `Message` TEXT,`ImageData` BLOB)";
             SQLiteCommand command = new SQLiteCommand(sql, conn);
             //Console.WriteLine(sql);
             command.ExecuteNonQuery();
 
             AddToUserList(username);
-
-            string insertSql = "INSERT INTO " + username + " (DateTime, Message) VALUES ('" + dt.ToString() + "', '" + message + "')";
-            SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
-            //Console.WriteLine(insertSql);
-            command2.ExecuteNonQuery();
         }
 
         public static void AddToUserList(string username)
@@ -62,9 +88,9 @@ namespace p2p
             return userList;
         }
 
-        public static List<string> GetHistory(string selectedUser)
+        public static List<Tuple<int, string>> GetHistory(string selectedUser)
         {
-            List<string> messageHistory = new List<string>();
+            List<Tuple<int, string>> messageHistory = new List<Tuple<int, string>>();
 
             SQLiteConnection conn = GetConnection();
             string sql = "select * from " + selectedUser;
@@ -73,7 +99,18 @@ namespace p2p
             
             while (reader.Read())
             {
-                messageHistory.Add("New conversation started " + reader["DateTime"] + "\n" + reader["Message"].ToString());
+                if (reader["Type"].ToString() == "Text")
+                {
+                    Tuple<int, string> tpl = new Tuple<int, string>(1, reader["DateTime"] + "\n" + reader["Message"].ToString());
+                    messageHistory.Add(tpl);
+                }
+
+                else
+                {
+                    string byteToString = System.Text.Encoding.Default.GetString((byte [])reader["ImageData"]);
+                    Tuple<int, string> tpl = new Tuple<int, string>(0, byteToString);
+                    messageHistory.Add(tpl);
+                }
                 //string output = reader["Message"].ToString();
                 //messageHistory.Add(output);
             }
