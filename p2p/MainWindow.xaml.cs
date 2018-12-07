@@ -30,10 +30,7 @@ namespace p2p
     public partial class MainWindow : Window
     {
         public static MainWindow AppWindow;
-        
-        
-        
-
+        private SocketCl s;
         Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = "11000", ListenerPort = "11000", Username = "DefaultUsername" };
 
         public MainWindow()
@@ -43,45 +40,7 @@ namespace p2p
             DataContext = session;
         }
 
-        public class Connection
-        {
-            private string UsernameValue;
-
-            public string Username
-            {
-                get { return UsernameValue; }
-                set { UsernameValue = value; }
-            }
-
-            private string ConnectorIPValue;
-
-            public string ConnectorIP
-            {
-                get { return ConnectorIPValue; }
-                set { ConnectorIPValue = value; }
-            }
-
-            private string ConnectorPortValue;
-
-            public string ConnectorPort
-            {
-                get { return ConnectorPortValue; }
-
-                set { ConnectorPortValue = value; }
-            }
-            private string ListenerPortValue;
-
-            public string ListenerPort
-            {
-                get { return ListenerPortValue; }
-
-                set { ListenerPortValue = value; }
-                
-            }
-        }
-
-
-            private SocketCl s;
+       
 
 
         public bool AcceptRequestBox(string connectingUsername)
@@ -105,6 +64,11 @@ namespace p2p
         public void ShowExcepion(Exception ex)
         {
             MessageBox.Show(ex.ToString());
+        }
+
+        public void ShowMessage(string output)
+        {
+            MessageBox.Show(output);
         }
 
         public string GetMyUsername()
@@ -138,7 +102,6 @@ namespace p2p
 
         public void DisconnectCallback(string username, DateTime convoDT)
         {
-            //WriteConvoToDB(username, convoDT);
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -157,7 +120,6 @@ namespace p2p
         { 
             listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                                new Action(delegate () {
-                                                                   //listMessage.Items.Add(image);
                                                                    listMessage.Items.Add(timestamp + " " + username + ": Sent you an image");
                                                                }));
             System.Windows.Application.Current.Dispatcher.Invoke(
@@ -166,7 +128,6 @@ namespace p2p
                      imger.Source = image;
                      listMessage.Items.Add(imger);
                  });
-
         }
 
 

@@ -76,6 +76,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Connection.cs" />
+    <Compile Include="CustomException.cs" />
     <Compile Include="SocketCl.cs" />
     <Compile Include="Viewmodel.cs" />
     <Page Include="history.xaml">

@@ -16,20 +16,13 @@ namespace p2p
     public static class HistoryDB
     {
         public static SQLiteConnection GetConnection()
-        {
-            try
-            { 
+        { 
             string connectionString = "Data Source = database.db; Version = 3;";
             SQLiteConnection conn;
             conn = new SQLiteConnection(connectionString);
             conn.Open();
             return conn;
-            }
-            catch (SQLiteException se)
-            {
-                //messagebox "no connection"
-                p2p.MainWindow.AppWindow.ShowExcepion(se);
-            }
+            
         }
 
         public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
@@ -44,7 +37,7 @@ namespace p2p
             }
             catch (SQLiteException se)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(se);
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while connecting to the database");
             }
         }
 
@@ -62,7 +55,7 @@ namespace p2p
             }
             catch (SQLiteException se)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(se);
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while connecting to the database");
             }
 
 
@@ -76,13 +69,14 @@ namespace p2p
             {
                 SQLiteCommand command = new SQLiteCommand(sql, conn);
                 command.ExecuteNonQuery();
+                AddToUserList(username);
             }
             
-            AddToUserList(username);
+            
 
             catch (SQLiteException se)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(se);
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while connecting to the database");
             }
         }
 
@@ -99,7 +93,7 @@ namespace p2p
 
             catch (SQLiteException se)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(se);
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while reading the Friend List");
             }
         }
 
@@ -130,6 +124,7 @@ namespace p2p
 
         public static List<Tuple<int, string>> GetHistory(string selectedUser)
         {
+            int nrOfRows = 0;
             List<Tuple<int, string>> messageHistory = new List<Tuple<int, string>>();
             string sql = "select * from " + selectedUser;
             try
@@ -140,6 +135,7 @@ namespace p2p
             
             while (reader.Read())
             {
+                nrOfRows += 1; // counting rows
                 if (reader["Type"].ToString() == "Text")
                 {
                     Tuple<int, string> tpl = new Tuple<int, string>(1, reader["DateTime"] + "\n" + reader["Message"].ToString());
@@ -152,14 +148,25 @@ namespace p2p
                     Tuple<int, string> tpl = new Tuple<int, string>(0, byteToString);
                     messageHistory.Add(tpl);
                 }
-
             }
+            if (nrOfRows < 1)
+                {
+                    throw new CustomException("There is no chat history to show");
+                }
+
             return messageHistory;
             }
             catch (SQLiteException se)
             {
                 List<Tuple<int, string>> messageHistoryFail = new List<Tuple<int, string>>();
                 Tuple<int, string> tpl = new Tuple<int, string>(1, "Something went wrong");
+                messageHistoryFail.Add(tpl);
+                return messageHistoryFail;
+            }
+            catch (CustomException ce)
+            {
+                List<Tuple<int, string>> messageHistoryFail = new List<Tuple<int, string>>();
+                Tuple<int, string> tpl = new Tuple<int, string>(1, ce.message);
                 messageHistoryFail.Add(tpl);
                 return messageHistoryFail;
             }

@@ -35,11 +35,7 @@ namespace p2p
             searchResultBox.Items.Clear();
             try
             {
-            
-
             List<string> tmp = HistoryDB.UpdateUserList();
-            //MessageBox.Show(tmp[0]);
-            //MessageBox.Show(searchBox.Text);
             string search = searchBox.Text;
 
             var query_where1 = from a in tmp
@@ -93,6 +89,11 @@ namespace p2p
                     //Console.WriteLine(message);
                 }
             }
+            catch (ArgumentNullException ex)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("A problem occured while reading the images from your chat history");
+            }
+
             catch (Exception ex)
             {
                 chatHistoryBox.Items.Add("There is no chat history to show");
