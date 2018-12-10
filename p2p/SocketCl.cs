@@ -156,6 +156,8 @@ namespace p2p
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
                     s.Close();
+                    p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                    return;
                 }
                 else
                 {
@@ -262,7 +264,8 @@ namespace p2p
                      int bytesSent = s.Send(msg);
                      s.Shutdown(SocketShutdown.Both);
                      s.Close();
-                 }
+                     p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                }
                 else
                 {
                     connectionAccepted = true;
@@ -338,6 +341,7 @@ namespace p2p
                 s.Shutdown(SocketShutdown.Both);
                 s.Close();
                 p2p.MainWindow.AppWindow.ConnectionBroken();
+                p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
             }
         }
 
