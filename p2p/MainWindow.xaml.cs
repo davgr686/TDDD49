@@ -31,6 +31,7 @@ namespace p2p
     {
         public static MainWindow AppWindow;
         private SocketCl s;
+        private bool disconnectcheck = true;
         Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = "11000", ListenerPort = "11000", Username = "DefaultUsername" };
 
         public MainWindow()
@@ -102,6 +103,10 @@ namespace p2p
 
         public void DisconnectCallback()
         {
+            if (disconnectcheck)
+            {
+                MessageBox.Show("The user you were chatting with disconnected.");
+            }
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -225,6 +230,7 @@ namespace p2p
 
         private void disconnectButton_Click(object sender, RoutedEventArgs e)
         {
+            disconnectcheck = false;
             if (MessageBox.Show("Are you sure you want to disconnect?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
             {
                 return;

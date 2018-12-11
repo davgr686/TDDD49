@@ -33,23 +33,16 @@ namespace p2p
         private void searchButton_Click(object sender, RoutedEventArgs e)
         {
             searchResultBox.Items.Clear();
-            try
-            {
             List<string> tmp = HistoryDB.UpdateUserList();
             string search = searchBox.Text;
 
-            var query_where1 = from a in tmp
+            var query_where1 = from a in tmp //LINQ 
                                where a.Contains(search)
                                select a;
+            
             foreach (var a in query_where1)
             {
                     searchResultBox.Items.Add(a);
-            }
-
-            }
-            catch (Exception ex)
-            {
-                searchResultBox.Items.Add("There are no users matching your query");
             }
         }
 
@@ -94,10 +87,7 @@ namespace p2p
                 p2p.MainWindow.AppWindow.ShowMessage("A problem occured while reading the images from your chat history");
             }
 
-            catch (Exception ex)
-            {
-                chatHistoryBox.Items.Add("There is no chat history to show");
-            }
+            
         }
     }
 }
