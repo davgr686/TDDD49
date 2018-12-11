@@ -100,7 +100,7 @@ namespace p2p
             new Action(delegate () { SendImage_button.IsEnabled = true; }));
         }
 
-        public void DisconnectCallback(string username, DateTime convoDT)
+        public void DisconnectCallback()
         {
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));

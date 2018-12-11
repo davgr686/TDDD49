@@ -156,7 +156,7 @@ namespace p2p
                     connectionAccepted = false;
                     s.Shutdown(SocketShutdown.Both);
                     s.Close();
-                    p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                    p2p.MainWindow.AppWindow.DisconnectCallback();
                     return;
                 }
                 else
@@ -189,7 +189,7 @@ namespace p2p
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                            p2p.MainWindow.AppWindow.DisconnectCallback();
                         }
 
                         else if (responseMessage.Type == "Image")
@@ -231,10 +231,19 @@ namespace p2p
             }
             catch (SocketException se)
             {
-                connectionAccepted = false;
-                s.Shutdown(SocketShutdown.Both);
-                s.Close();
-                p2p.MainWindow.AppWindow.ConnectionBroken();
+                if (connectionAccepted)
+                { 
+                    connectionAccepted = false;
+                    s.Shutdown(SocketShutdown.Both);
+                    s.Close();
+                    p2p.MainWindow.AppWindow.ConnectionBroken();
+                }
+                else
+                {
+                    p2p.MainWindow.AppWindow.ShowMessage("There is friend listening on that port!");
+                    p2p.MainWindow.AppWindow.DisconnectCallback();
+                }
+                
             }
           
         }
@@ -264,7 +273,7 @@ namespace p2p
                      int bytesSent = s.Send(msg);
                      s.Shutdown(SocketShutdown.Both);
                      s.Close();
-                     p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                     p2p.MainWindow.AppWindow.DisconnectCallback();
                 }
                 else
                 {
@@ -298,7 +307,7 @@ namespace p2p
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
-                            p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                            p2p.MainWindow.AppWindow.DisconnectCallback();
                         }
                         else if (responseMessage.Type == "Image")
                         {
@@ -341,7 +350,7 @@ namespace p2p
                 s.Shutdown(SocketShutdown.Both);
                 s.Close();
                 p2p.MainWindow.AppWindow.ConnectionBroken();
-                p2p.MainWindow.AppWindow.DisconnectCallback(connectedUsername, convoDT);
+                p2p.MainWindow.AppWindow.DisconnectCallback();
             }
         }
 
