@@ -191,7 +191,7 @@ namespace p2p
             {
                 s = new SocketCl();
                 s.InitSocket();
-                int success =s.Listen(session.ListenerPort);
+                int success = s.Listen(session.ListenerPort);
                 if (success == 1)
                 { 
                 Username.IsReadOnly = true;
