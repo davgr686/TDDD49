@@ -31,7 +31,7 @@ namespace p2p
     {
         public static MainWindow AppWindow;
         private SocketCl s;
-        private bool disconnectcheck = true;
+        private bool disconnectcheck = false;
         Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = "11000", ListenerPort = "11000", Username = "DefaultUsername" };
 
         public MainWindow()
@@ -50,6 +50,7 @@ namespace p2p
             }
             else
             {
+                disconnectcheck = true;
                 Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                     new Action(delegate () { Send_button.IsEnabled = true; }));
                 
@@ -96,6 +97,7 @@ namespace p2p
             new Action(delegate () { Send_button.IsEnabled = true; }));
             SendImage_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { SendImage_button.IsEnabled = true; }));
+            disconnectcheck = true;
         }
 
         public void DisconnectCallback()
@@ -156,6 +158,7 @@ namespace p2p
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
+            listMessage.Items.Clear();
             try
             {
                 s = new SocketCl();
@@ -183,6 +186,7 @@ namespace p2p
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
+            listMessage.Items.Clear();
             try
             {
                 s = new SocketCl();
@@ -219,13 +223,14 @@ namespace p2p
 
         private void disconnectButton_Click(object sender, RoutedEventArgs e)
         {
-            disconnectcheck = false;
+            
             if (MessageBox.Show("Are you sure you want to disconnect?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
             {
                 return;
             }
             else
             {
+                disconnectcheck = false;
                 s.SendDisconnect();
                 Connect_button.IsEnabled = true;
                 disconnectButton.IsEnabled = false;

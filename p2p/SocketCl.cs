@@ -62,6 +62,11 @@ namespace p2p
                 p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
                 return 0;
             }
+            catch (OverflowException oex)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
+            }
         }
 
         public int Listen(string localPort)
