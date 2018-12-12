@@ -33,47 +33,64 @@ namespace p2p
         private string myUsername;
 
         public void InitSocket()
-        {
-            try
-            { 
+        {           
             s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            }
-
-            catch (SocketException sex)
-            {
-                p2p.MainWindow.AppWindow.ShowExcepion(sex);
-            }
+            s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);        
         }
 
-        public void Connect(string friendIp, string friendPort)
+        public int Connect(string friendIp, string friendPort)
         {
             myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
             try
             { 
-            IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(friendIp), Convert.ToInt32(friendPort)); // kanske ska returnera IPEndPoint
-            s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+                IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(friendIp), Convert.ToInt32(friendPort)); // kanske ska returnera IPEndPoint
+                s.BeginConnect(ipe, new AsyncCallback(ConnectCallback), s);
+                return 1;
             }
             catch (SocketException sex)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(sex);
+                p2p.MainWindow.AppWindow.ShowMessage("There was a problem connecting");
+                return 0;
+            }
+            catch (FormatException fex)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
+            }
+            catch (ArgumentOutOfRangeException range)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
             }
         }
 
-        public void Listen(string localPort)
+        public int Listen(string localPort)
         {
             
             myUsername = p2p.MainWindow.AppWindow.GetMyUsername();
             try
             {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(localPort)); // kanske ska returnera IPEndPoint
-            s.Bind(localEndPoint);
-            s.Listen(10);
-            s.BeginAccept(new AsyncCallback(ListenCallback), s);
+                IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, Convert.ToInt32(localPort)); // kanske ska returnera IPEndPoint
+                s.Bind(localEndPoint);
+                s.Listen(10);
+                s.BeginAccept(new AsyncCallback(ListenCallback), s);
+                return 1;
             }
             catch (SocketException sex)
             {
-                p2p.MainWindow.AppWindow.ShowExcepion(sex);
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while trying to listen, try another port number");
+                return 0;
+            }
+            
+            catch (FormatException fex)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
+            }
+            catch (ArgumentOutOfRangeException range)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
             }
         }
 
@@ -215,10 +232,8 @@ namespace p2p
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
                                 p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp, image);
-                            }
-                            
+                            }  
                         }
-
                         else
                         {
                             HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username);
@@ -240,12 +255,10 @@ namespace p2p
                 }
                 else
                 {
-                    p2p.MainWindow.AppWindow.ShowMessage("There is friend listening on that port!");
+                    p2p.MainWindow.AppWindow.ShowMessage("There is no friend listening on that port!");
                     p2p.MainWindow.AppWindow.DisconnectCallback();
                 }
-                
             }
-          
         }
 
         private void ListenCallback(IAsyncResult ar)
@@ -260,7 +273,6 @@ namespace p2p
                 string currUser = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                 connectedUsername = currUser;
                 convoDT = DateTime.Now;
-
 
                 /* Accept or decline incoming connection request */
                
@@ -285,7 +297,6 @@ namespace p2p
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.UTF8.GetBytes(jsonAcceptRequest);
                     int bytesSent = s.Send(msg);
-
                 }
                 String data = null;
                 while (connectionAccepted)
@@ -313,7 +324,6 @@ namespace p2p
                         {
                             byte[] img = responseMessage.imgByte;
                             HistoryDB.AddImage(img, DateTime.Now, connectedUsername);
-
                             using (var ms = new System.IO.MemoryStream(img))
                             {
                                 var image = new BitmapImage();
@@ -326,13 +336,12 @@ namespace p2p
                                 image.Freeze();
 
                                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                                string photolocation = "tmpeeeer.jpg";  //file name 
+                                string photolocation = "img.jpg";  //file name 
                                 encoder.Frames.Add(BitmapFrame.Create((BitmapImage)image));
                                 using (var filestream = new FileStream(photolocation, FileMode.Create))
                                     encoder.Save(filestream);
                                 p2p.MainWindow.AppWindow.DisplayImg(responseMessage.Username, timestamp, image);
                             }
-
                         }
                         else
                         {
@@ -353,6 +362,5 @@ namespace p2p
                 p2p.MainWindow.AppWindow.DisconnectCallback();
             }
         }
-
     }
 }

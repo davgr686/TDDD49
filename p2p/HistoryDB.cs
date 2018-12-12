@@ -21,15 +21,13 @@ namespace p2p
             SQLiteConnection conn;
             conn = new SQLiteConnection(connectionString);
             conn.Open();
-            return conn;
-            
+            return conn; 
         }
 
         public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
         {
             SQLiteConnection conn = GetConnection();
             string insertSql = "INSERT INTO " + username + " (Type, DateTime, Message) VALUES ('Text', '" + dt.ToString() + "', '" + message + "')";
-            //Console.WriteLine(insertSql);
             try
             {
                 SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
@@ -57,8 +55,6 @@ namespace p2p
             {
                 p2p.MainWindow.AppWindow.ShowMessage("An error occured while connecting to the database");
             }
-
-
         }
 
         public static void InitConvo(string username)
@@ -71,9 +67,6 @@ namespace p2p
                 command.ExecuteNonQuery();
                 AddToUserList(username);
             }
-            
-            
-
             catch (SQLiteException se)
             {
                 p2p.MainWindow.AppWindow.ShowMessage("An error occured while connecting to the database");
@@ -84,13 +77,11 @@ namespace p2p
         {
             string insertSql = "INSERT OR REPLACE INTO Users (Username) values('" + username + "')";
             SQLiteConnection conn = GetConnection();
-
             try
             { 
             SQLiteCommand command = new SQLiteCommand(insertSql, conn);
             command.ExecuteNonQuery();
             }
-
             catch (SQLiteException se)
             {
                 p2p.MainWindow.AppWindow.ShowMessage("An error occured while reading the Friend List");
@@ -108,10 +99,8 @@ namespace p2p
             SQLiteDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                //Console.WriteLine("Detta händer: " + reader["Username"]);
                 userList.Add(Convert.ToString(reader["Username"]));
             }
-            
             return userList;
             }
             catch (SQLiteException ex)

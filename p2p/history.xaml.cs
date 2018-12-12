@@ -26,9 +26,7 @@ namespace p2p
         public history()
         {
             InitializeComponent();
-           
         }
-
 
         private void searchButton_Click(object sender, RoutedEventArgs e)
         {
@@ -55,18 +53,18 @@ namespace p2p
                 List<Tuple<int, string>> chatHistory = HistoryDB.GetHistory(selectedUser);
                 foreach (Tuple<int, string> tuple in chatHistory)
                 {
-                    if (tuple.Item1 == 1)
+                    if (tuple.Item1 == 1) // if item is text
                     { 
                     chatHistoryBox.Items.Add(tuple.Item2);
                     }
-                    else
+                    else // if item is an image
                     {
                         byte[] img = System.Text.Encoding.Default.GetBytes(tuple.Item2);
                         using (var ms = new System.IO.MemoryStream(img))
                         {
                             var image = new BitmapImage();
                             image.BeginInit();
-                            image.CacheOption = BitmapCacheOption.OnLoad; // here
+                            image.CacheOption = BitmapCacheOption.OnLoad; 
                             image.StreamSource = ms;
                             image.DecodePixelHeight = 150;
                             image.DecodePixelWidth = 150;
@@ -74,20 +72,15 @@ namespace p2p
 
                             Image imger = new Image();
                             imger.Source = image;
-                            chatHistoryBox.Items.Add(imger);
-
-
+                            chatHistoryBox.Items.Add(imger); 
                         }
                     }
-                    //Console.WriteLine(message);
                 }
             }
-            catch (ArgumentNullException ex)
+            catch (NullReferenceException ex)
             {
-                p2p.MainWindow.AppWindow.ShowMessage("A problem occured while reading the images from your chat history");
+                p2p.MainWindow.AppWindow.ShowMessage("Search for a username to display your chat history");
             }
-
-            
         }
     }
 }

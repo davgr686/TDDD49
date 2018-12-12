@@ -41,8 +41,6 @@ namespace p2p
             DataContext = session;
         }
 
-       
-
 
         public bool AcceptRequestBox(string connectingUsername)
         {
@@ -59,7 +57,6 @@ namespace p2p
                                                     new Action(delegate () { SendImage_button.IsEnabled = true; }));
                 return true;
             }
-                
         }
 
         public void ShowExcepion(Exception ex)
@@ -136,7 +133,6 @@ namespace p2p
         }
 
 
-
         public void AddMessage(string username, string message, DateTime timestamp)
         {
            listMessage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -160,21 +156,20 @@ namespace p2p
 
         private void Connect_button_Click(object sender, RoutedEventArgs e)
         {
-            
-            //s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //s.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            //IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textFriendsIp.Text), Convert.ToInt32(textFriendsPort.Text));
             try
             {
                 s = new SocketCl();
                 s.InitSocket();
-                s.Connect(session.ConnectorIP, session.ConnectorPort);
-                Username.IsReadOnly = true;
-                Username.IsEnabled = false;
-                Listen_button.IsEnabled = false;
-                Connect_button.IsEnabled = false;
-
+                int success = s.Connect(session.ConnectorIP, session.ConnectorPort);
+                if (success == 1)
+                { 
+                    Username.IsReadOnly = true;
+                    Username.IsEnabled = false;
+                    Listen_button.IsEnabled = false;
+                    Connect_button.IsEnabled = false;
+                }
             }
+                
             catch (ArgumentNullException ae)
             {
                 MessageBox.Show(ae.ToString());
@@ -183,33 +178,28 @@ namespace p2p
             {
                 MessageBox.Show("No user on the specified IP/Port.");
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
+
         }
 
         private void Listen_button_Click(object sender, RoutedEventArgs e)
         {
-            
             try
             {
                 s = new SocketCl();
                 s.InitSocket();
-                s.Listen(session.ListenerPort);
+                int success =s.Listen(session.ListenerPort);
+                if (success == 1)
+                { 
                 Username.IsReadOnly = true;
                 Username.IsEnabled = false;
                 Listen_button.IsEnabled = false;
                 Connect_button.IsEnabled = false;
+                }
             }
             catch (SocketException se)
             {
                 MessageBox.Show("Connection broken.");
                 Listen_button.IsEnabled = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
             }
         }
 
@@ -217,8 +207,7 @@ namespace p2p
         private void Send_button_Click(object sender, RoutedEventArgs e)
         {
             s.SendMessage(textMessage.Text);
-            DateTime timestamp = DateTime.Now;
-            listMessage.Items.Add(timestamp + " Me: " + textMessage.Text);
+            listMessage.Items.Add(DateTime.Now + " Me: " + textMessage.Text);
             textMessage.Clear();
         }
 
@@ -248,9 +237,7 @@ namespace p2p
 
 
         private void SendImage_button_Click(object sender, RoutedEventArgs e)
-        {
-            SendImage_button.IsEnabled = false;
-            //BrowseButton.IsEnabled = false;
+        {   
             try
             {
                 string path = "";
@@ -261,33 +248,32 @@ namespace p2p
                 {
                     path = ofd.FileName;
                 }
-                SendImage_button.IsEnabled = true;
-                s.SendImage(path);
-                DateTime timestamp = DateTime.Now;
-                listMessage.Items.Add(timestamp + " Me: Sent Image");
-                byte[] img = System.IO.File.ReadAllBytes(path);
-                using (var ms = new System.IO.MemoryStream(img))
-                {
-                    var image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad; // here
-                    image.StreamSource = ms;
-                    image.DecodePixelHeight = 150;
-                    image.DecodePixelWidth = 150;
-                    image.EndInit();
+                if (path != "")
+                { 
+                    s.SendImage(path);
+                    byte[] img = System.IO.File.ReadAllBytes(path);
+                    using (var ms = new System.IO.MemoryStream(img))
+                        {
+                        var image = new BitmapImage();
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad; // here
+                        image.StreamSource = ms;
+                        image.DecodePixelHeight = 150;
+                        image.DecodePixelWidth = 150;
+                        image.EndInit();
 
-                    Image imger = new Image();
-                    imger.Source = image;
-                    listMessage.Items.Add(imger);
+                        Image imger = new Image();
+                        imger.Source = image;
+                        listMessage.Items.Add(DateTime.Now + " Me: Sent Image");
+                        listMessage.Items.Add(imger);
+                        }
                 }
 
-
             }
-            catch (Exception ex)
+            catch (ArgumentException aex)
             {
-                MessageBox.Show("The Image could not be sent");
+                MessageBox.Show("Something went wrong while trying to send the image");
             }
         }
-
     }
 }
