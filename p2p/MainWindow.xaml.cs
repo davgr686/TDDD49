@@ -31,7 +31,6 @@ namespace p2p
     {
         public static MainWindow AppWindow;
         private SocketCl s;
-        private bool disconnectcheck = false;
         Connection session = new Connection { ConnectorIP = "127.0.0.1", ConnectorPort = "11000", ListenerPort = "11000", Username = "DefaultUsername" };
 
         public MainWindow()
@@ -50,7 +49,6 @@ namespace p2p
             }
             else
             {
-                disconnectcheck = true;
                 Send_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                                     new Action(delegate () { Send_button.IsEnabled = true; }));
                 
@@ -97,15 +95,11 @@ namespace p2p
             new Action(delegate () { Send_button.IsEnabled = true; }));
             SendImage_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
             new Action(delegate () { SendImage_button.IsEnabled = true; }));
-            disconnectcheck = true;
         }
 
         public void DisconnectCallback()
         {
-            if (disconnectcheck)
-            {
-                MessageBox.Show("The user you were chatting with disconnected.");
-            }
+            
             Listen_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                                            new Action(delegate () { Listen_button.IsEnabled = true; }));
             Connect_button.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -230,7 +224,6 @@ namespace p2p
             }
             else
             {
-                disconnectcheck = false;
                 s.SendDisconnect();
                 Connect_button.IsEnabled = true;
                 disconnectButton.IsEnabled = false;

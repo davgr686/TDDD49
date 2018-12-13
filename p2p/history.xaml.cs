@@ -32,6 +32,8 @@ namespace p2p
         {
             searchResultBox.Items.Clear();
             List<string> tmp = HistoryDB.UpdateUserList();
+            if (tmp.Any())
+            { 
             string search = searchBox.Text;
 
             var query_where1 = from a in tmp //LINQ 
@@ -41,6 +43,11 @@ namespace p2p
             foreach (var a in query_where1)
             {
                     searchResultBox.Items.Add(a);
+            }
+            }
+            else
+            {
+                searchResultBox.Items.Add("You have no conversations yet");
             }
         }
 

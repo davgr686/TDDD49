@@ -97,6 +97,12 @@ namespace p2p
                 p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
                 return 0;
             }
+
+            catch (OverflowException oex)
+            {
+                p2p.MainWindow.AppWindow.ShowMessage("Invalid IP or PORT number");
+                return 0;
+            }
         }
 
         public void SendMessage(string message)
@@ -106,7 +112,7 @@ namespace p2p
                 DataProtocol DP = new DataProtocol("Message", myUsername, message, new byte[1]);
                 string jsonMessage = JsonConvert.SerializeObject(DP);
                 byte[] msg = System.Text.Encoding.UTF8.GetBytes(jsonMessage);
-                HistoryDB.AddMessage(message, DateTime.Now, connectedUsername);
+                HistoryDB.AddMessage(message, DateTime.Now, connectedUsername, "Me");
                 int bytesSent = s.Send(msg);
             }
             catch (ArgumentNullException aex)
@@ -187,7 +193,8 @@ namespace p2p
                     HistoryDB.InitConvo(response.Username);
                     connectedUsername = response.Username;
                     convoDT = DateTime.Now;
-                    HistoryDB.AddMessage("New conversation started", convoDT, response.Username);
+                    HistoryDB.AddMessage("New conversation started", convoDT, response.Username, "System");
+                    p2p.MainWindow.AppWindow.AddMessage("System", "New conversation started", convoDT);
                     p2p.MainWindow.AppWindow.AcceptedRequest(response.Username);
                 }
                 while (connectionAccepted)
@@ -206,7 +213,8 @@ namespace p2p
                             DataProtocol disconnect = new DataProtocol("disconnect", myUsername, " disconnected", new byte[1]);
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.UTF8.GetBytes(jsonDisconnect);
-                            HistoryDB.AddMessage(connectedUsername + " disconnected", timestamp, connectedUsername);
+                            HistoryDB.AddMessage(connectedUsername + " disconnected", timestamp, connectedUsername, connectedUsername);
+                            p2p.MainWindow.AppWindow.AddMessage("System", connectedUsername + " disconnected", convoDT);
                             int byteSent = s.Send(disconnectMsg);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
@@ -241,7 +249,7 @@ namespace p2p
                         }
                         else
                         {
-                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username);
+                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username, responseMessage.Username);
                             p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
                         }
                     }
@@ -296,8 +304,9 @@ namespace p2p
                 {
                     connectionAccepted = true;
                     HistoryDB.InitConvo(currUser);
-                    HistoryDB.AddMessage("New conversation started", convoDT, currUser);
+                    HistoryDB.AddMessage("New conversation started", convoDT, currUser, "System");
                     p2p.MainWindow.AppWindow.EnableDisconnectButton();
+                    p2p.MainWindow.AppWindow.AddMessage("System", "New conversation started", convoDT);
                     DataProtocol acceptRequest = new DataProtocol("connectionAccepted", myUsername, "null", new byte[1]);
                     string jsonAcceptRequest = JsonConvert.SerializeObject(acceptRequest);
                     byte[] msg = System.Text.Encoding.UTF8.GetBytes(jsonAcceptRequest);
@@ -319,7 +328,8 @@ namespace p2p
                             string jsonDisconnect = JsonConvert.SerializeObject(disconnect);
                             byte[] disconnectMsg = System.Text.Encoding.UTF8.GetBytes(jsonDisconnect);
                             int bytesSen = s.Send(disconnectMsg);
-                            HistoryDB.AddMessage(connectedUsername + " disconnected", timestamp, connectedUsername);
+                            HistoryDB.AddMessage(connectedUsername + " disconnected", timestamp, connectedUsername, "System");
+                            p2p.MainWindow.AppWindow.AddMessage("System", connectedUsername + " disconnected", convoDT);
                             connectionAccepted = false;
                             s.Shutdown(SocketShutdown.Both);
                             s.Close();
@@ -350,7 +360,7 @@ namespace p2p
                         }
                         else
                         {
-                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username);
+                            HistoryDB.AddMessage(responseMessage.Message, timestamp, responseMessage.Username, responseMessage.Username);
                             p2p.MainWindow.AppWindow.AddMessage(responseMessage.Username, responseMessage.Message, timestamp);
                         }
                     }

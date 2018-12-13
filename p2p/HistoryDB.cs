@@ -24,10 +24,11 @@ namespace p2p
             return conn; 
         }
 
-        public static void AddMessage(string message, DateTime dt, string username) //ska ändras till klassen message senare
+        public static void AddMessage(string message, DateTime dt, string username, string who) //ska ändras till klassen message senare
         {
             SQLiteConnection conn = GetConnection();
-            string insertSql = "INSERT INTO " + username + " (Type, DateTime, Message) VALUES ('Text', '" + dt.ToString() + "', '" + message + "')";
+            string messageWithSender = who + ": " + message;
+            string insertSql = "INSERT INTO " + username + " (Type, DateTime, Message) VALUES ('Text', '" + dt.ToString() + "', '" + messageWithSender + "')";
             try
             {
                 SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
@@ -84,7 +85,7 @@ namespace p2p
             }
             catch (SQLiteException se)
             {
-                p2p.MainWindow.AppWindow.ShowMessage("An error occured while reading the Friend List");
+                p2p.MainWindow.AppWindow.ShowMessage("An error occured while writing to the DB");
             }
         }
 
@@ -148,7 +149,7 @@ namespace p2p
             catch (SQLiteException se)
             {
                 List<Tuple<int, string>> messageHistoryFail = new List<Tuple<int, string>>();
-                Tuple<int, string> tpl = new Tuple<int, string>(1, "Something went wrong");
+                Tuple<int, string> tpl = new Tuple<int, string>(1, "Start chatting with friends!");
                 messageHistoryFail.Add(tpl);
                 return messageHistoryFail;
             }
