@@ -24,7 +24,7 @@ namespace p2p
             return conn; 
         }
 
-        public static void AddMessage(string message, DateTime dt, string username, string who) //ska ändras till klassen message senare
+        public static void AddMessage(string message, DateTime dt, string username, string who) 
         {
             SQLiteConnection conn = GetConnection();
             string messageWithSender = who + ": " + message;
@@ -77,11 +77,14 @@ namespace p2p
         public static void AddToUserList(string username)
         {
             string insertSql = "INSERT OR REPLACE INTO Users (Username) values('" + username + "')";
+            string sqlcreate = "CREATE TABLE IF NOT EXISTS Users ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,`Username` TEXT UNIQUE)";
             SQLiteConnection conn = GetConnection();
             try
-            { 
-            SQLiteCommand command = new SQLiteCommand(insertSql, conn);
-            command.ExecuteNonQuery();
+            {
+                SQLiteCommand command = new SQLiteCommand(sqlcreate, conn);
+                command.ExecuteNonQuery();
+                SQLiteCommand command2 = new SQLiteCommand(insertSql, conn);
+                command2.ExecuteNonQuery();
             }
             catch (SQLiteException se)
             {
